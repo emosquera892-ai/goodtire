@@ -12,6 +12,7 @@ import {
   type Caso,
   type CasoResumen,
 } from "@/lib/api";
+import { TIPOS } from "@/lib/tipos";
 import { Boton, Campo, Seccion } from "./ui";
 
 const fecha = (iso: string) => new Date(iso).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" });
@@ -128,7 +129,7 @@ export function MisCasos({ activoId, onAbrir }: { activoId?: number; onAbrir: (c
                 )}
                 <p className="mt-1 text-[13px] text-ash">
                   {c.costo_total !== null ? dinero(c.costo_total) + " · " : ""}
-                  Abre: {c.almacenes_abiertos.length ? c.almacenes_abiertos.join(", ") : "—"} · {fecha(c.actualizado)}
+                  {TIPOS[c.tipo]?.nombre ?? c.tipo} · {c.resumen || "—"} · {fecha(c.actualizado)}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">

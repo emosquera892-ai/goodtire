@@ -7,7 +7,7 @@ import { Contador } from "./Contador";
 import { RedLogistica } from "./RedLogistica";
 import { Boton, Seccion } from "./ui";
 
-function Metrica({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) {
+export function Metrica({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) {
   return (
     <div className="rounded-[28px] bg-obsidian p-6">
       <p className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">{children}</p>
@@ -16,7 +16,7 @@ function Metrica({ etiqueta, children }: { etiqueta: string; children: React.Rea
   );
 }
 
-function Barra({ etiqueta, uso, capacidad, pct }: { etiqueta: string; uso: number; capacidad: number | null; pct: number | null }) {
+export function Barra({ etiqueta, uso, capacidad, pct }: { etiqueta: string; uso: number; capacidad: number | null; pct: number | null }) {
   const reducir = useReducedMotion();
   return (
     <div>
@@ -41,7 +41,7 @@ function Barra({ etiqueta, uso, capacidad, pct }: { etiqueta: string; uso: numbe
   );
 }
 
-function Tabla({ columnas, filas }: { columnas: string[]; filas: (string | number)[][] }) {
+export function Tabla({ columnas, filas }: { columnas: string[]; filas: (string | number)[][] }) {
   return (
     <div className="max-h-72 overflow-auto rounded-[20px] border border-steel">
       <table className="w-full min-w-[420px] border-collapse text-[13px]">

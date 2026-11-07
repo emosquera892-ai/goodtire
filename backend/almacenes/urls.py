@@ -13,6 +13,8 @@ urlpatterns = [
     path("reglas", views.reglas),
     path("ejemplo", views.ejemplo),
     path("resolver", views.ResolverView.as_view()),
+    path("problemas/<str:tipo>/ejemplo", views.ejemplo_tipo),
+    path("problemas/<str:tipo>/resolver", views.ResolverTipoView.as_view()),
     path("auth/registro", RegistroView.as_view()),
     path("auth/token", LoginView.as_view()),
     path("auth/token/refresh", TokenRefreshView.as_view()),

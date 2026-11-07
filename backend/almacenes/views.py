@@ -87,3 +87,32 @@ class ResolverView(APIView):
             return Response(resolver_datos(request.data))
         except ErrorDatos as e:
             return Response({"detail": e.mensajes}, status=422)
+
+
+def _tipo_o_404(tipo):
+    from django.http import Http404
+
+    from .tipos import TIPOS
+
+    if tipo not in TIPOS:
+        raise Http404
+    return TIPOS[tipo]
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def ejemplo_tipo(request, tipo):
+    return Response(_tipo_o_404(tipo).ejemplo())
+
+
+class ResolverTipoView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "resolver"
+
+    def post(self, request, tipo):
+        t = _tipo_o_404(tipo)
+        try:
+            return Response(t.resolver(t.parsear(request.data)))
+        except ErrorDatos as e:
+            return Response({"detail": e.mensajes}, status=422)

@@ -60,6 +60,8 @@ export type Solucion = {
 
 export type CasoResumen = {
   id: number;
+  tipo: string;
+  resumen: string;
   nombre: string;
   costo_total: number | null;
   almacenes_abiertos: string[];
@@ -69,6 +71,7 @@ export type CasoResumen = {
 
 export type Caso = {
   id: number;
+  tipo: string;
   nombre: string;
   datos: Problema;
   resultado: Solucion | null;
@@ -163,7 +166,7 @@ async function extraerErrores(res: Response): Promise<string[]> {
   return [`Error ${res.status}`];
 }
 
-async function pedir<T>(ruta: string, opciones: RequestInit = {}, conAuth = false, reintento = true): Promise<T> {
+export async function pedir<T>(ruta: string, opciones: RequestInit = {}, conAuth = false, reintento = true): Promise<T> {
   const headers = new Headers(opciones.headers);
   if (opciones.body) headers.set("Content-Type", "application/json");
   const sesion = conAuth ? leerSesion() : null;

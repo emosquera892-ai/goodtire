@@ -10,9 +10,9 @@ from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .esquema import ErrorDatos, parsear
+from .esquema import ErrorDatos
 from .models import Caso
-from .solver import resolver
+from .tipos import TIPOS
 
 User = get_user_model()
 
@@ -70,9 +70,11 @@ class CasoSerializer(serializers.ModelSerializer):
         max_digits=30, decimal_places=2, coerce_to_string=False, read_only=True
     )
 
+    tipo = serializers.ChoiceField(choices=list(TIPOS), default="ubicacion")
+
     class Meta:
         model = Caso
-        fields = ("id", "nombre", "datos", "resultado", "costo_total", "creado", "actualizado")
+        fields = ("id", "tipo", "nombre", "datos", "resultado", "costo_total", "creado", "actualizado")
         read_only_fields = ("resultado", "costo_total", "creado", "actualizado")
 
     def validate_nombre(self, valor):
@@ -82,11 +84,14 @@ class CasoSerializer(serializers.ModelSerializer):
         return valor
 
     def validate(self, attrs):
+        if self.instance is not None and "tipo" in attrs and attrs["tipo"] != self.instance.tipo:
+            raise serializers.ValidationError({"tipo": ["No se puede cambiar el tipo de un caso guardado"]})
         # Solo se vuelve a resolver cuando llegan datos nuevos
         if "datos" in attrs:
+            tipo = TIPOS[self.instance.tipo if self.instance is not None else attrs.get("tipo", "ubicacion")]
             try:
-                problema = parsear(attrs["datos"])
-                resultado = resolver(problema)
+                problema = tipo.parsear(attrs["datos"])
+                resultado = tipo.resolver(problema)
             except ErrorDatos as e:
                 raise serializers.ValidationError({"datos": e.mensajes})
             if resultado["costo_total"] >= COSTO_MAXIMO:
@@ -102,13 +107,17 @@ class CasoResumenSerializer(serializers.ModelSerializer):
         max_digits=30, decimal_places=2, coerce_to_string=False, read_only=True
     )
     almacenes_abiertos = serializers.SerializerMethodField()
+    resumen = serializers.SerializerMethodField()
 
     class Meta:
         model = Caso
-        fields = ("id", "nombre", "costo_total", "almacenes_abiertos", "creado", "actualizado")
+        fields = ("id", "tipo", "nombre", "costo_total", "resumen", "almacenes_abiertos", "creado", "actualizado")
 
     def get_almacenes_abiertos(self, obj):
         return (obj.resultado or {}).get("almacenes_abiertos", [])
+
+    def get_resumen(self, obj):
+        return TIPOS[obj.tipo].resumen(obj.resultado) if obj.tipo in TIPOS else ""
 
 
 class PaginaCasos(PageNumberPagination):
@@ -153,6 +162,7 @@ class CasoViewSet(viewsets.ModelViewSet):
         self._verificar_limite()
         copia = Caso.objects.create(
             usuario=request.user,
+            tipo=original.tipo,
             nombre=f"{original.nombre} (copia)"[:120],
             datos=original.datos,
             resultado=original.resultado,

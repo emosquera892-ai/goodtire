@@ -6,6 +6,7 @@ class Caso(models.Model):
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="casos"
     )
+    tipo = models.CharField(max_length=20, default="ubicacion")
     nombre = models.CharField(max_length=120)
     datos = models.JSONField()
     resultado = models.JSONField(null=True, blank=True)

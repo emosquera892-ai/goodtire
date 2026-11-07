@@ -55,7 +55,7 @@ export function Reglas() {
   );
 }
 
-function Matriz({
+export function Matriz({
   filas,
   columnas,
   valores,

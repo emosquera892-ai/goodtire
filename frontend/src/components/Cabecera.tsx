@@ -8,7 +8,7 @@ import { abrirLogin, useUsuario } from "@/lib/sesion";
 
 const PROBLEMAS = [
   { nombre: "Ubicación de almacenes", nota: "Good Tire, Inc.", href: "/resolver" },
-  { nombre: "Transporte", nota: "Próximamente" },
+  { nombre: "Transporte", nota: "Origen → destino", href: "/resolver/transporte" },
   { nombre: "Transbordo", nota: "Próximamente" },
   { nombre: "Asignación", nota: "Próximamente" },
 ];
