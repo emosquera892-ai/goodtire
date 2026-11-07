@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ErrorApi,
   actualizarCaso,
   crearCaso,
+  obtenerCaso,
   resolver,
   type Caso,
   type Problema,
@@ -20,14 +23,19 @@ import {
   type Estado,
 } from "@/lib/formulario";
 import { Editor } from "./Editor";
-import { MisCasos } from "./MisCasos";
 import { RedLogistica } from "./RedLogistica";
 import { Resultados } from "./Resultados";
+import { abrirLogin, useUsuario } from "@/lib/sesion";
 import { Boton, Campo } from "./ui";
 
 type Resultado = { solucion: Solucion; problema: Problema };
 
-export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirLogin: () => void }) {
+export function Solver() {
+  const usuario = useUsuario();
+  const pedirLogin = abrirLogin;
+  const router = useRouter();
+  const casoParam = useSearchParams().get("caso");
+  const cargadoRef = useRef<string | null>(null);
   const [estado, setEstado] = useState<Estado>(() => ejemploGoodTire());
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [casoActual, setCasoActual] = useState<{ id: number; nombre: string } | null>(null);
@@ -38,7 +46,6 @@ export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirL
   const [guardando, setGuardando] = useState(false);
   const [errorServidor, setErrorServidor] = useState<string[]>([]);
   const [aviso, setAviso] = useState("");
-  const [version, setVersion] = useState(0);
   const refResultado = useRef<HTMLDivElement>(null);
 
   const errores = useMemo(() => validar(estado), [estado]);
@@ -60,6 +67,7 @@ export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirL
     setDesactualizado(false);
     setErrorServidor([]);
     setAviso("");
+    if (casoParam) router.replace("/resolver");
   }
 
   async function calcular() {
@@ -108,7 +116,6 @@ export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirL
       setCasoActual({ id: guardado.id, nombre: guardado.nombre });
       if (guardado.resultado) setResultado({ solucion: guardado.resultado, problema: guardado.datos });
       setDesactualizado(false);
-      setVersion((v) => v + 1);
       setAviso("Caso guardado ✓");
     } catch (e) {
       setErrorServidor(e instanceof ErrorApi ? e.detalle : ["Ocurrió un error inesperado"]);
@@ -117,7 +124,7 @@ export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirL
     }
   }
 
-  function abrir(c: Caso) {
+  const abrir = useCallback((c: Caso) => {
     setEstado(desdeProblema(c.datos));
     setResultado(c.resultado ? { solucion: c.resultado, problema: c.datos } : null);
     setCasoActual({ id: c.id, nombre: c.nombre });
@@ -126,8 +133,24 @@ export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirL
     setDesactualizado(false);
     setErrorServidor([]);
     setAviso("");
-    document.getElementById("resolver")?.scrollIntoView({ behavior: "smooth" });
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!casoParam) {
+      cargadoRef.current = null;
+      return;
+    }
+    if (!usuario || cargadoRef.current === casoParam) return;
+    cargadoRef.current = casoParam;
+    const id = Number(casoParam);
+    if (!Number.isInteger(id)) return;
+    obtenerCaso(id)
+      .then(abrir)
+      .catch((e) => {
+        cargadoRef.current = null;
+        setErrorServidor(e instanceof ErrorApi ? e.detalle : ["Ocurrió un error inesperado"]);
+      });
+  }, [casoParam, usuario, abrir]);
 
   const vista = {
     plantas: estado.plantas.map((p, i) => p.nombre.trim() || `Planta ${i + 1}`),
@@ -136,13 +159,20 @@ export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirL
   };
 
   return (
-    <section id="resolver" className="mx-auto w-full max-w-6xl scroll-mt-16 px-6 py-20">
-      <h2 className="text-[clamp(32px,5vw,56px)] font-semibold leading-[1.07] tracking-[-0.015em] text-porcelain">
+    <section id="resolver" className="mx-auto w-full max-w-6xl scroll-mt-16 px-6 py-12">
+      <h1 className="text-[clamp(32px,5vw,56px)] font-semibold leading-[1.07] tracking-[-0.015em] text-porcelain">
         Resuelve tu caso.
-      </h2>
+      </h1>
       <p className="mt-3 max-w-xl text-[17px] leading-[1.47] tracking-[-0.374px] text-ash">
         Edita las tablas, o parte del caso de Good Tire. El modelo decide qué almacenes abrir y cómo enviar cada llanta.
       </p>
+
+      {casoParam && !usuario && (
+        <p className="mt-6 rounded-[20px] border border-steel p-4 text-[14px] text-porcelain">
+          Inicia sesión para abrir el caso guardado.{" "}
+          <Boton variante="enlace" onClick={pedirLogin}>Entrar</Boton>
+        </p>
+      )}
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Boton variante="secundario" onClick={() => cargar(ejemploGoodTire(), "Caso Good Tire")}>
@@ -229,7 +259,10 @@ export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirL
                 </Boton>
               )}
             </div>
-            {aviso && <p className="mt-3 text-[14px] text-porcelain">{aviso}</p>}
+            <p className="mt-3 text-[14px] text-porcelain">
+              {aviso && <span className="mr-3">{aviso}</span>}
+              <Link href="/casos" className="text-electric-link hover:underline">Ver mis casos →</Link>
+            </p>
           </>
         ) : (
           <div className="mt-3 flex flex-wrap items-center gap-4">
@@ -238,12 +271,6 @@ export function Solver({ usuario, pedirLogin }: { usuario: string | null; pedirL
           </div>
         )}
       </div>
-
-      {usuario && (
-        <div className="mt-6">
-          <MisCasos key={version} activoId={caso?.id} onAbrir={abrir} />
-        </div>
-      )}
     </section>
   );
 }

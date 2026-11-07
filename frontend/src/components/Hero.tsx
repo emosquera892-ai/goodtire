@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import Link from "next/link";
 import { useRef } from "react";
 
 export function Hero() {
@@ -12,7 +13,7 @@ export function Hero() {
   const opacidad = useTransform(scrollYProgress, [0, 0.8], [1, reducir ? 1 : 0]);
 
   return (
-    <section ref={ref} className="relative isolate flex min-h-[92vh] items-center justify-center overflow-hidden">
+    <section ref={ref} className="relative isolate flex min-h-[calc(100svh-2.75rem)] items-center justify-center overflow-hidden">
       <motion.div
         aria-hidden
         style={{ y: yFondo }}
@@ -63,18 +64,18 @@ export function Hero() {
           transition={{ duration: 0.9, delay: 0.4 }}
           className="mt-9 flex flex-wrap items-center justify-center gap-3"
         >
-          <a
-            href="#resolver"
+          <Link
+            href="/resolver"
             className="rounded-full bg-apple-blue px-5 py-2.5 text-[14px] text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-apple-blue"
           >
             Resolver el caso
-          </a>
-          <a
-            href="#reglas"
+          </Link>
+          <Link
+            href="/reglas"
             className="rounded-full border border-slate px-5 py-2.5 text-[14px] text-porcelain transition hover:bg-white/5"
           >
             Qué puedes introducir
-          </a>
+          </Link>
         </motion.div>
       </motion.div>
     </section>

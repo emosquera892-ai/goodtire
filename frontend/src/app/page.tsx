@@ -1,5 +1,5 @@
-import { Aplicacion } from "@/components/Aplicacion";
+import { Hero } from "@/components/Hero";
 
 export default function Home() {
-  return <Aplicacion />;
+  return <Hero />;
 }

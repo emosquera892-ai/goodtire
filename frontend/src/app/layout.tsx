@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/inter";
 import "./globals.css";
+import { Marco } from "@/components/Marco";
 
 export const metadata: Metadata = {
   title: "Good Tire · Ubicación de almacenes",
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className="h-full">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Marco>{children}</Marco>
+      </body>
     </html>
   );
 }

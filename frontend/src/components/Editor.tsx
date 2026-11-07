@@ -24,7 +24,7 @@ type Props = {
   intentado: boolean;
 };
 
-function Reglas() {
+export function Reglas() {
   return (
     <section id="reglas" className="scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
       <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Qué puedes introducir</h3>
