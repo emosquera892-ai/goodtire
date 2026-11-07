@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import type { SolucionT } from "@/lib/transporte";
+type Envios = { envios: { origen: string; destino: string; unidades: number }[] };
 
 type Nodo = { tipo: "origen" | "destino"; i: number; etiqueta: string; x: number; y: number };
 const W = 960;
@@ -23,7 +23,7 @@ export function RedTransporte({
 }: {
   origenes: string[];
   destinos: string[];
-  solucion?: SolucionT | null;
+  solucion?: Envios | null;
 }) {
   const reducir = useReducedMotion();
   const H = Math.max(420, Math.max(origenes.length, destinos.length) * 26 + 80);

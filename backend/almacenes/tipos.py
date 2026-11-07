@@ -1,7 +1,7 @@
 """Registro de tipos de problema: cada uno sabe validar, resolver y resumir."""
 from collections import namedtuple
 
-from . import esquema, solver, transporte
+from . import asignacion, esquema, solver, transporte
 
 Tipo = namedtuple("Tipo", "parsear resolver resumen ejemplo")
 
@@ -20,4 +20,5 @@ def _ejemplo_ubicacion():
 TIPOS = {
     "ubicacion": Tipo(esquema.parsear, solver.resolver, _resumen_ubicacion, _ejemplo_ubicacion),
     "transporte": Tipo(transporte.parsear, transporte.resolver, transporte.resumen, lambda: transporte.EJEMPLO),
+    "asignacion": Tipo(asignacion.parsear, asignacion.resolver, asignacion.resumen, lambda: asignacion.EJEMPLO),
 }

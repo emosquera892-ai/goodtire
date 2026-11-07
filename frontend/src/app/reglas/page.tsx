@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ReglasAsignacion } from "@/components/EditorAsignacion";
 import { ReglasTransporte } from "@/components/EditorTransporte";
 import { Reglas } from "@/components/Editor";
 
 export const metadata: Metadata = { title: "Reglas · Good Tire" };
+
+const enlace = "rounded-full border border-slate px-5 py-2.5 text-[14px] text-porcelain transition hover:bg-white/5";
 
 export default function Page() {
   return (
@@ -11,6 +14,7 @@ export default function Page() {
       <h1 className="sr-only">Qué puedes introducir</h1>
       <Reglas />
       <ReglasTransporte />
+      <ReglasAsignacion />
       <div className="flex flex-wrap gap-3">
         <Link
           href="/resolver"
@@ -18,11 +22,11 @@ export default function Page() {
         >
           Resolver ubicación de almacenes
         </Link>
-        <Link
-          href="/resolver/transporte"
-          className="rounded-full border border-slate px-5 py-2.5 text-[14px] text-porcelain transition hover:bg-white/5"
-        >
+        <Link href="/resolver/transporte" className={enlace}>
           Resolver transporte
+        </Link>
+        <Link href="/resolver/asignacion" className={enlace}>
+          Resolver asignación
         </Link>
       </div>
     </div>

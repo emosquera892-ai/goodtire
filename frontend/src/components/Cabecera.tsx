@@ -10,7 +10,7 @@ const PROBLEMAS = [
   { nombre: "Ubicación de almacenes", nota: "Good Tire, Inc.", href: "/resolver" },
   { nombre: "Transporte", nota: "Origen → destino", href: "/resolver/transporte" },
   { nombre: "Transbordo", nota: "Próximamente" },
-  { nombre: "Asignación", nota: "Próximamente" },
+  { nombre: "Asignación", nota: "Agente → tarea", href: "/resolver/asignacion" },
 ];
 
 const base =
