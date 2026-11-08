@@ -39,13 +39,6 @@ class Transbordo(BaseModel):
             raise ValueError("Debe haber al menos un origen")
         if not destinos:
             raise ValueError("Debe haber al menos un destino")
-        oferta = sum(n.cantidad for n in origenes)
-        demanda = sum(n.cantidad for n in destinos)
-        if oferta < demanda:
-            raise ValueError(
-                f"La oferta total ({oferta:g}) es menor que la demanda total ({demanda:g}). "
-                "Aumenta la oferta o reduce la demanda"
-            )
         for j, n in enumerate(self.nodos):
             if n.tipo == "destino" and n.cantidad > 0:
                 if all(self.costos[i][j] is None for i in range(N) if i != j):
@@ -57,33 +50,55 @@ def parsear(datos) -> Transbordo:
     return parsear_con(Transbordo, datos)
 
 
-def resolver(d: Transbordo) -> dict:
+def _modelo(d: Transbordo, arcos, sentido, cobertura=None):
     N = range(len(d.nodos))
-    arcos = [(i, j) for i in N for j in N if i != j and d.costos[i][j] is not None]
-
-    m = pulp.LpProblem("Transbordo", pulp.LpMinimize)
+    m = pulp.LpProblem("Transbordo", sentido)
     x = {a: pulp.LpVariable(f"x_{a[0]}_{a[1]}", lowBound=0) for a in arcos}
-    m += pulp.lpSum(d.costos[i][j] * x[i, j] for i, j in arcos)
+    neto = []  # lo que realmente se queda en cada destino
     for k in N:
         sale = pulp.lpSum(x[k, j] for j in N if (k, j) in x)
         entra = pulp.lpSum(x[i, k] for i in N if (i, k) in x)
         nodo = d.nodos[k]
         if nodo.tipo == "origen":
             m += sale - entra <= nodo.cantidad
+            m += sale - entra >= 0
         elif nodo.tipo == "destino":
-            m += entra - sale == nodo.cantidad
+            m += entra - sale <= nodo.cantidad
+            m += entra - sale >= 0
+            neto.append(entra - sale)
         else:
             m += entra - sale == 0
             if nodo.cantidad is not None:
                 m += entra <= nodo.cantidad
+    entregado = pulp.lpSum(neto)
+    if cobertura is None:
+        m += entregado  # fase 1: entregar lo máximo posible
+    else:
+        m += pulp.lpSum(d.costos[i][j] * x[i, j] for i, j in arcos)  # fase 2: al menor costo
+        m += entregado >= cobertura - 1e-6
     m.solve(pulp.PULP_CBC_CMD(msg=0, timeLimit=TIEMPO_LIMITE))
-    estado = pulp.LpStatus[m.status]
-    if estado == "Infeasible":
-        raise ErrorDatos(["No hay forma de cubrir la demanda con las rutas disponibles y las capacidades dadas"])
-    if estado != "Optimal":
-        raise ErrorDatos([f"No se encontró solución óptima (estado: {estado})"])
+    return m, x
 
-    val = lambda a: round(x[a].value() or 0, 4)
+
+def resolver(d: Transbordo) -> dict:
+    """Entrega la mayor cantidad posible (toda la demanda si alcanza) y, entre esos
+    planes, el de menor costo. Si no alcanza, informa el faltante por destino."""
+    N = range(len(d.nodos))
+    arcos = [(i, j) for i in N for j in N if i != j and d.costos[i][j] is not None]
+
+    x = {}
+    estado = "Optimal"
+    if arcos:
+        m1, _ = _modelo(d, arcos, pulp.LpMaximize)
+        if pulp.LpStatus[m1.status] != "Optimal":
+            raise ErrorDatos([f"No se encontró solución óptima (estado: {pulp.LpStatus[m1.status]})"])
+        cobertura = round(m1.objective.value() or 0, 6)
+        m, x = _modelo(d, arcos, pulp.LpMinimize, cobertura)
+        estado = pulp.LpStatus[m.status]
+        if estado != "Optimal":
+            raise ErrorDatos([f"No se encontró solución óptima (estado: {estado})"])
+
+    val = lambda a: round(x[a].value() or 0, 4) if a in x else 0
     flujos = [
         {
             "desde": d.nodos[i].nombre,
@@ -99,11 +114,19 @@ def resolver(d: Transbordo) -> dict:
     sale = {k: sum(val((k, j)) for j in N if (k, j) in x) for k in N}
     oferta = sum(n.cantidad for n in d.nodos if n.tipo == "origen")
     demanda = sum(n.cantidad for n in d.nodos if n.tipo == "destino")
+    faltante = {
+        k: round(max(0.0, d.nodos[k].cantidad - (entra[k] - sale[k])), 4) if d.nodos[k].tipo == "destino" else 0
+        for k in N
+    }
+    falta = round(sum(faltante.values()), 4)
     return {
         "estado": estado,
         "costo_total": round(sum(f["costo"] for f in flujos), 2),
         "oferta_total": oferta,
         "demanda_total": demanda,
+        "entregado_total": round(demanda - falta, 4),
+        "faltante_total": falta,
+        "cubierta": falta < 1e-6,
         "balanceado": abs(oferta - demanda) < 1e-9,
         "flujos": flujos,
         "detalle_nodos": [
@@ -113,6 +136,7 @@ def resolver(d: Transbordo) -> dict:
                 "cantidad": d.nodos[k].cantidad,
                 "entra": round(entra[k], 4),
                 "sale": round(sale[k], 4),
+                "faltante": faltante[k],
             }
             for k in N
         ],

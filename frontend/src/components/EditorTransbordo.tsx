@@ -28,6 +28,7 @@ export function ReglasTransbordo() {
             <li>• Rutas entre cualquier par de nodos (también origen → destino directo).</li>
             <li>• Dejar vacío un costo para indicar que esa ruta no existe.</li>
             <li>• Que la oferta sea mayor que la demanda: lo que sobra queda sin enviar.</li>
+            <li>• Que la oferta sea menor que la demanda: se envía todo lo posible al menor costo y se muestra lo que falta.</li>
             <li>• Limitar cuánto puede pasar por un intermedio (capacidad opcional).</li>
           </ul>
         </div>
@@ -37,7 +38,6 @@ export function ReglasTransbordo() {
             <li>• Números negativos, letras ni notación científica (1e5).</li>
             <li>• Dejar vacía la oferta de un origen ni la demanda de un destino.</li>
             <li>• Repetir nombres de nodos.</li>
-            <li>• Una oferta total menor que la demanda total.</li>
             <li>• Un destino con demanda y sin ninguna ruta que llegue a él.</li>
           </ul>
         </div>

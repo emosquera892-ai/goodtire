@@ -33,12 +33,29 @@ class TransporteApiTests(APITestCase):
         self.assertAlmostEqual(sum(o["sobrante"] for o in d["detalle_origenes"]), 25)
         self.assertLessEqual(d["costo_total"], 1020)
 
-    def test_demanda_mayor_que_oferta_se_rechaza(self):
+    def test_demanda_mayor_que_oferta_entrega_lo_posible(self):
         e = copy.deepcopy(EJEMPLO)
-        e["demanda"] = [45, 20, 30, 40]
-        r = self.resolver(e)
-        self.assertEqual(r.status_code, 422)
-        self.assertIn("menor que la demanda total", " ".join(r.json()["detail"]))
+        e["demanda"] = [45, 20, 30, 40]  # demanda 135 > oferta 125
+        d = self.resolver(e).json()
+        self.assertFalse(d["cubierta"])
+        self.assertAlmostEqual(d["faltante_total"], 10)
+        self.assertAlmostEqual(d["entregado_total"], 125)
+        self.assertAlmostEqual(sum(o["sobrante"] for o in d["detalle_origenes"]), 0)
+
+    def test_faltante_se_asigna_donde_sale_mas_caro(self):
+        # A ofrece 10; X cuesta 1, Y cuesta 3 y cada uno pide 8: se sirve todo X y 2 de Y
+        e = {"origenes": ["A"], "destinos": ["X", "Y"], "oferta": [10], "demanda": [8, 8],
+             "costos": [[1, 3]]}
+        d = self.resolver(e).json()
+        self.assertEqual(d["costo_total"], 14)
+        faltas = {x["destino"]: x["faltante"] for x in d["detalle_destinos"]}
+        self.assertEqual(faltas, {"X": 0, "Y": 6})
+        self.assertAlmostEqual(d["faltante_total"], 6)
+
+    def test_sin_faltante_cuando_alcanza(self):
+        d = self.resolver(EJEMPLO).json()
+        self.assertTrue(d["cubierta"])
+        self.assertEqual(d["faltante_total"], 0)
 
     def test_ruta_bloqueada_se_respeta(self):
         e = copy.deepcopy(EJEMPLO)
@@ -55,11 +72,13 @@ class TransporteApiTests(APITestCase):
         self.assertEqual(r.status_code, 422)
         self.assertIn("rutas están bloqueadas", " ".join(r.json()["detail"]))
 
-    def test_infactible_por_rutas(self):
+    def test_rutas_insuficientes_dejan_faltante(self):
         e = {"origenes": ["A", "B"], "destinos": ["X", "Y"], "oferta": [10, 10], "demanda": [15, 5],
              "costos": [[1, None], [None, 1]]}
-        r = self.resolver(e)
-        self.assertEqual(r.status_code, 422)
+        d = self.resolver(e).json()
+        self.assertEqual(d["costo_total"], 15)
+        faltas = {x["destino"]: x["faltante"] for x in d["detalle_destinos"]}
+        self.assertEqual(faltas, {"X": 5, "Y": 0})
 
     def test_validaciones(self):
         casos = {
@@ -86,7 +105,7 @@ class TransporteApiTests(APITestCase):
     def test_valores_enormes_no_rompen(self):
         e = copy.deepcopy(EJEMPLO)
         e["oferta"] = [1e12] * 3
-        e["demanda"] = [1e11] * 4
+        e["demanda"] = [1e12] * 4 if False else [1e11] * 4
         e["costos"] = [[1e12] * 4 for _ in range(3)]
         self.assertIn(self.resolver(e).status_code, (200, 422))
 

@@ -29,12 +29,6 @@ class Transporte(BaseModel):
             raise ValueError("demanda debe tener un valor por destino")
         if len(self.costos) != O or any(len(f) != D for f in self.costos):
             raise ValueError(f"costos debe ser una matriz de {O} filas (origenes) x {D} columnas (destinos)")
-        oferta, demanda = sum(self.oferta), sum(self.demanda)
-        if oferta < demanda:
-            raise ValueError(
-                f"La oferta total ({oferta:g}) es menor que la demanda total ({demanda:g}). "
-                "Aumenta la oferta o reduce la demanda"
-            )
         for j in range(D):
             if self.demanda[j] > 0 and all(self.costos[i][j] is None for i in range(O)):
                 raise ValueError(f"Ningún origen puede abastecer a '{self.destinos[j]}' (todas sus rutas están bloqueadas)")
@@ -45,23 +39,42 @@ def parsear(datos) -> Transporte:
     return parsear_con(Transporte, datos)
 
 
-def resolver(d: Transporte) -> dict:
+def _modelo(d: Transporte, rutas, sentido, cobertura=None):
     O, D = range(len(d.origenes)), range(len(d.destinos))
-    rutas = [(i, j) for i in O for j in D if d.costos[i][j] is not None]
-
-    m = pulp.LpProblem("Transporte", pulp.LpMinimize)
+    m = pulp.LpProblem("Transporte", sentido)
     x = {r: pulp.LpVariable(f"x_{r[0]}_{r[1]}", lowBound=0) for r in rutas}
-    m += pulp.lpSum(d.costos[i][j] * x[i, j] for i, j in rutas)
+    recibido = {j: pulp.lpSum(x[i, j] for i in O if (i, j) in x) for j in D}
     for i in O:
         m += pulp.lpSum(x[i, j] for j in D if (i, j) in x) <= d.oferta[i]
     for j in D:
-        m += pulp.lpSum(x[i, j] for i in O if (i, j) in x) == d.demanda[j]
+        m += recibido[j] <= d.demanda[j]
+    entregado = pulp.lpSum(recibido.values())
+    if cobertura is None:
+        m += entregado  # fase 1: entregar lo máximo posible
+    else:
+        m += pulp.lpSum(d.costos[i][j] * x[i, j] for i, j in rutas)  # fase 2: al menor costo
+        m += entregado >= cobertura - 1e-6
     m.solve(pulp.PULP_CBC_CMD(msg=0, timeLimit=TIEMPO_LIMITE))
-    estado = pulp.LpStatus[m.status]
-    if estado == "Infeasible":
-        raise ErrorDatos(["No hay forma de cubrir la demanda con las rutas disponibles y la oferta de cada origen"])
-    if estado != "Optimal":
-        raise ErrorDatos([f"No se encontró solución óptima (estado: {estado})"])
+    return m, x
+
+
+def resolver(d: Transporte) -> dict:
+    """Entrega la mayor cantidad posible (toda la demanda si alcanza) y, entre esos
+    planes, el de menor costo. Si la oferta no alcanza, informa el faltante."""
+    O, D = range(len(d.origenes)), range(len(d.destinos))
+    rutas = [(i, j) for i in O for j in D if d.costos[i][j] is not None]
+
+    x = {}
+    estado = "Optimal"
+    if rutas:
+        m1, _ = _modelo(d, rutas, pulp.LpMaximize)
+        if pulp.LpStatus[m1.status] != "Optimal":
+            raise ErrorDatos([f"No se encontró solución óptima (estado: {pulp.LpStatus[m1.status]})"])
+        cobertura = round(m1.objective.value() or 0, 6)
+        m, x = _modelo(d, rutas, pulp.LpMinimize, cobertura)
+        estado = pulp.LpStatus[m.status]
+        if estado != "Optimal":
+            raise ErrorDatos([f"No se encontró solución óptima (estado: {estado})"])
 
     val = lambda r: round(x[r].value() or 0, 4) if r in x else 0
     envios = [
@@ -78,11 +91,15 @@ def resolver(d: Transporte) -> dict:
     total = round(sum(e["costo"] for e in envios), 2)
     uso = [sum(val((i, j)) for j in D) for i in O]
     recibido = [sum(val((i, j)) for i in O) for j in D]
+    faltante = [round(max(0.0, d.demanda[j] - recibido[j]), 4) for j in D]
     return {
         "estado": estado,
         "costo_total": total,
         "oferta_total": sum(d.oferta),
         "demanda_total": sum(d.demanda),
+        "entregado_total": round(sum(recibido), 4),
+        "faltante_total": round(sum(faltante), 4),
+        "cubierta": sum(faltante) < 1e-6,
         "balanceado": abs(sum(d.oferta) - sum(d.demanda)) < 1e-9,
         "envios": envios,
         "detalle_origenes": [
@@ -95,7 +112,13 @@ def resolver(d: Transporte) -> dict:
             for i in O
         ],
         "detalle_destinos": [
-            {"destino": d.destinos[j], "demanda": d.demanda[j], "recibido": round(recibido[j], 4)} for j in D
+            {
+                "destino": d.destinos[j],
+                "demanda": d.demanda[j],
+                "recibido": round(recibido[j], 4),
+                "faltante": faltante[j],
+            }
+            for j in D
         ],
     }
 

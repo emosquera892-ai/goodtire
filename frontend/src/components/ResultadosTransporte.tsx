@@ -10,6 +10,7 @@ import { Seccion } from "./ui";
 export function ResultadosTransporte({ solucion, problema }: { solucion: SolucionT; problema: ProblemaT }) {
   const enviadas = solucion.detalle_destinos.reduce((s, d) => s + d.recibido, 0);
   const sobrante = solucion.oferta_total - enviadas;
+  const falta = solucion.faltante_total ?? 0;
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-[28px] bg-obsidian p-4 sm:p-8">
@@ -29,14 +30,34 @@ export function ResultadosTransporte({ solucion, problema }: { solucion: Solucio
       </div>
 
       <p className="text-[17px] leading-[1.47] tracking-[-0.374px] text-porcelain">
-        Se cubre toda la demanda ({numero(solucion.demanda_total)} unidades) con un costo mínimo de{" "}
-        <strong>{moneda(solucion.costo_total)}</strong>.
-        <span className="text-ash">
-          {solucion.balanceado
-            ? " El problema está balanceado: oferta y demanda coinciden."
-            : ` La oferta (${numero(solucion.oferta_total)}) supera la demanda: quedan ${numero(sobrante)} unidades sin enviar.`}
-        </span>
+        {falta > 1e-6 ? (
+          <>
+            La oferta no alcanza: se entregan <strong>{numero(enviadas)}</strong> de {numero(solucion.demanda_total)} unidades y faltan{" "}
+            <strong>{numero(falta)}</strong>. Enviar todo lo posible cuesta como mínimo <strong>{moneda(solucion.costo_total)}</strong>.
+          </>
+        ) : (
+          <>
+            Se cubre toda la demanda ({numero(solucion.demanda_total)} unidades) con un costo mínimo de{" "}
+            <strong>{moneda(solucion.costo_total)}</strong>.
+            <span className="text-ash">
+              {solucion.balanceado
+                ? " El problema está balanceado: oferta y demanda coinciden."
+                : ` La oferta (${numero(solucion.oferta_total)}) supera la demanda: quedan ${numero(sobrante)} unidades sin enviar.`}
+            </span>
+          </>
+        )}
       </p>
+
+      {falta > 1e-6 && (
+        <Seccion titulo="Demanda sin cubrir" nota="Destinos que no reciben todo lo que piden. Quedan sin cubrir donde resulta más caro abastecer.">
+          <Tabla
+            columnas={["Destino", "Demanda", "Recibido", "Faltante"]}
+            filas={solucion.detalle_destinos
+              .filter((d) => (d.faltante ?? 0) > 1e-6)
+              .map((d) => [d.destino, numero(d.demanda), numero(d.recibido), numero(d.faltante ?? 0)])}
+          />
+        </Seccion>
+      )}
 
       <Seccion titulo="Uso de la oferta" nota="Cuánto envía cada origen respecto a lo que puede ofrecer.">
         <div className="space-y-5">

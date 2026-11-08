@@ -10,6 +10,8 @@ import { Seccion } from "./ui";
 
 export function ResultadosTransbordo({ solucion, problema }: { solucion: SolucionB; problema: ProblemaB }) {
   const sobrante = solucion.oferta_total - solucion.demanda_total;
+  const falta = solucion.faltante_total ?? 0;
+  const entregado = solucion.entregado_total ?? solucion.demanda_total;
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-[28px] bg-obsidian p-4 sm:p-8">
@@ -21,7 +23,7 @@ export function ResultadosTransbordo({ solucion, problema }: { solucion: Solucio
           <Contador valor={solucion.costo_total} formato={moneda} />
         </Metrica>
         <Metrica etiqueta="Unidades entregadas">
-          <Contador valor={solucion.demanda_total} formato={numero} />
+          <Contador valor={entregado} formato={numero} />
         </Metrica>
         <Metrica etiqueta="Rutas utilizadas">
           <Contador valor={solucion.flujos.length} formato={numero} />
@@ -29,14 +31,34 @@ export function ResultadosTransbordo({ solucion, problema }: { solucion: Solucio
       </div>
 
       <p className="text-[17px] leading-[1.47] tracking-[-0.374px] text-porcelain">
-        Se cubre toda la demanda ({numero(solucion.demanda_total)} unidades) con un costo mínimo de{" "}
-        <strong>{moneda(solucion.costo_total)}</strong>.
-        <span className="text-ash">
-          {solucion.balanceado
-            ? " El problema está balanceado: oferta y demanda coinciden."
-            : ` La oferta (${numero(solucion.oferta_total)}) supera la demanda: quedan ${numero(sobrante)} unidades sin enviar.`}
-        </span>
+        {falta > 1e-6 ? (
+          <>
+            La oferta o las rutas no alcanzan: se entregan <strong>{numero(entregado)}</strong> de {numero(solucion.demanda_total)} unidades y
+            faltan <strong>{numero(falta)}</strong>. Enviar todo lo posible cuesta como mínimo <strong>{moneda(solucion.costo_total)}</strong>.
+          </>
+        ) : (
+          <>
+            Se cubre toda la demanda ({numero(solucion.demanda_total)} unidades) con un costo mínimo de{" "}
+            <strong>{moneda(solucion.costo_total)}</strong>.
+            <span className="text-ash">
+              {solucion.balanceado
+                ? " El problema está balanceado: oferta y demanda coinciden."
+                : ` La oferta (${numero(solucion.oferta_total)}) supera la demanda: quedan ${numero(sobrante)} unidades sin enviar.`}
+            </span>
+          </>
+        )}
       </p>
+
+      {falta > 1e-6 && (
+        <Seccion titulo="Demanda sin cubrir" nota="Destinos que no reciben todo lo que piden. Quedan sin cubrir donde resulta más caro abastecer.">
+          <Tabla
+            columnas={["Destino", "Demanda", "Recibido", "Faltante"]}
+            filas={solucion.detalle_nodos
+              .filter((n) => n.tipo === "destino" && (n.faltante ?? 0) > 1e-6)
+              .map((n) => [n.nombre, numero(n.cantidad ?? 0), numero(n.entra - n.sale), numero(n.faltante ?? 0)])}
+          />
+        </Seccion>
+      )}
 
       <Seccion titulo="Plan de envíos" nota="Unidades por cada ruta activa y su costo.">
         <Tabla

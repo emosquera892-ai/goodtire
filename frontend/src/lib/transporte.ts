@@ -15,9 +15,12 @@ export type SolucionT = {
   oferta_total: number;
   demanda_total: number;
   balanceado: boolean;
+  entregado_total?: number;
+  faltante_total?: number;
+  cubierta?: boolean;
   envios: { origen: string; destino: string; unidades: number; costo_unitario: number; costo: number }[];
   detalle_origenes: { origen: string; oferta: number; uso: number; sobrante: number }[];
-  detalle_destinos: { destino: string; demanda: number; recibido: number }[];
+  detalle_destinos: { destino: string; demanda: number; recibido: number; faltante?: number }[];
 };
 
 export type CasoT = {
@@ -104,8 +107,6 @@ function revisar(texto: string, opcional = false): { valor?: number; error?: str
   return { valor: v };
 }
 
-const fmt = (n: number) => n.toLocaleString("es-CO", { maximumFractionDigits: 2 });
-
 export function validarT(e: EstadoT): ErroresT {
   const celdas: Record<string, string> = {};
   const globales: string[] = [];
@@ -141,11 +142,6 @@ export function validarT(e: EstadoT): ErroresT {
   );
 
   if (oferta.every((x) => x !== undefined) && demanda.every((x) => x !== undefined)) {
-    const so = (oferta as number[]).reduce((s, x) => s + x, 0);
-    const sd = (demanda as number[]).reduce((s, x) => s + x, 0);
-    if (so < sd) {
-      globales.push(`La oferta total (${fmt(so)}) es menor que la demanda total (${fmt(sd)}). Aumenta la oferta o reduce la demanda.`);
-    }
     e.destinos.forEach((d, j) => {
       if ((demanda[j] as number) > 0 && e.costos.every((f) => f[j].trim() === "")) {
         globales.push(`Ningún origen puede abastecer a «${d.nombre.trim() || `destino ${j + 1}`}»: todas sus rutas están vacías.`);
@@ -153,6 +149,16 @@ export function validarT(e: EstadoT): ErroresT {
     });
   }
   return { celdas, globales };
+}
+
+export function totalesT(e: EstadoT): { oferta: number; demanda: number } | null {
+  const of = e.origenes.map((o) => revisar(o.oferta).valor);
+  const de = e.destinos.map((d) => revisar(d.demanda).valor);
+  if (of.some((x) => x === undefined) || de.some((x) => x === undefined)) return null;
+  return {
+    oferta: (of as number[]).reduce((s, x) => s + x, 0),
+    demanda: (de as number[]).reduce((s, x) => s + x, 0),
+  };
 }
 
 export const hayErroresT = (er: ErroresT) => Object.keys(er.celdas).length > 0 || er.globales.length > 0;

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ErrorApi } from "@/lib/api";
+import { ErrorApi, numero } from "@/lib/api";
 import { abrirLogin, useUsuario } from "@/lib/sesion";
 import {
   actualizarCasoB,
@@ -15,6 +15,7 @@ import {
   hayErroresB,
   obtenerCasoB,
   resolverB,
+  totalesB,
   validarB,
   type CasoB,
   type EstadoB,
@@ -49,6 +50,8 @@ export function SolverTransbordo() {
 
   const errores = useMemo(() => validarB(estado), [estado]);
   const nCampos = Object.keys(errores.celdas).length;
+  const tot = totalesB(estado);
+  const faltaOferta = tot && tot.oferta < tot.demanda ? tot : null;
   const caso = usuario ? casoActual : null;
 
   function cambiar(nuevo: EstadoB) {
@@ -203,6 +206,12 @@ export function SolverTransbordo() {
             </span>
           )}
         </div>
+        {faltaOferta && (
+          <p className="mt-4 rounded-[20px] border border-steel p-4 text-[14px] text-porcelain">
+            La oferta total ({numero(faltaOferta.oferta)}) es menor que la demanda total ({numero(faltaOferta.demanda)}). Se enviará todo lo posible al
+            menor costo y verás cuánta demanda queda sin cubrir.
+          </p>
+        )}
         {intentado && errores.globales.length > 0 && (
           <ul role="alert" className="mt-4 space-y-1 rounded-[20px] border border-[#ff453a] p-4 text-[14px] text-porcelain">
             {errores.globales.map((m) => (

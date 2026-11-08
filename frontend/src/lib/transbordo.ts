@@ -14,8 +14,11 @@ export type SolucionB = {
   oferta_total: number;
   demanda_total: number;
   balanceado: boolean;
+  entregado_total?: number;
+  faltante_total?: number;
+  cubierta?: boolean;
   flujos: { desde: string; hasta: string; unidades: number; costo_unitario: number; costo: number }[];
-  detalle_nodos: { nombre: string; tipo: TipoNodo; cantidad: number | null; entra: number; sale: number }[];
+  detalle_nodos: { nombre: string; tipo: TipoNodo; cantidad: number | null; entra: number; sale: number; faltante?: number }[];
 };
 
 export type CasoB = {
@@ -109,8 +112,6 @@ function revisar(texto: string, opcional = false): { valor?: number; error?: str
   return { valor: v };
 }
 
-const fmt = (n: number) => n.toLocaleString("es-CO", { maximumFractionDigits: 2 });
-
 export function validarB(e: EstadoB): ErroresB {
   const celdas: Record<string, string> = {};
   const globales: string[] = [];
@@ -142,12 +143,6 @@ export function validarB(e: EstadoB): ErroresB {
 
   const ok = e.nodos.every((n, i) => n.tipo === "intermedio" || cant[i] !== undefined);
   if (ok) {
-    const suma = (t: TipoNodo) => e.nodos.reduce((s, n, i) => s + (n.tipo === t ? (cant[i] ?? 0) : 0), 0);
-    const so = suma("origen");
-    const sd = suma("destino");
-    if (so < sd) {
-      globales.push(`La oferta total (${fmt(so)}) es menor que la demanda total (${fmt(sd)}). Aumenta la oferta o reduce la demanda.`);
-    }
     e.nodos.forEach((n, j) => {
       if (n.tipo !== "destino" || !((cant[j] ?? 0) > 0)) return;
       const llega = e.costos.some((f, i) => i !== j && f[j].trim() !== "");
@@ -155,6 +150,19 @@ export function validarB(e: EstadoB): ErroresB {
     });
   }
   return { celdas, globales };
+}
+
+export function totalesB(e: EstadoB): { oferta: number; demanda: number } | null {
+  let oferta = 0;
+  let demanda = 0;
+  for (const n of e.nodos) {
+    if (n.tipo === "intermedio") continue;
+    const v = revisar(n.cantidad).valor;
+    if (v === undefined) return null;
+    if (n.tipo === "origen") oferta += v;
+    else demanda += v;
+  }
+  return { oferta, demanda };
 }
 
 export const hayErroresB = (er: ErroresB) => Object.keys(er.celdas).length > 0 || er.globales.length > 0;

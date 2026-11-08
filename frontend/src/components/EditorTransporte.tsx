@@ -26,6 +26,7 @@ export function ReglasTransporte() {
           <ul className="space-y-1.5 text-ash">
             <li>• Hasta {LIMITES_T.origenes} orígenes y {LIMITES_T.destinos} destinos, con nombres de 1 a {LIMITES_T.nombre} caracteres.</li>
             <li>• Que la oferta sea mayor que la demanda: lo que sobra queda sin enviar.</li>
+            <li>• Que la oferta sea menor que la demanda: se envía todo lo posible al menor costo y se muestra lo que falta.</li>
             <li>• Dejar vacío un costo para indicar que esa ruta no existe.</li>
             <li>• Números con punto o coma decimal (0.75 o 0,75).</li>
             <li>• Pegar celdas copiadas de Excel en la matriz de costos.</li>
@@ -37,7 +38,6 @@ export function ReglasTransporte() {
             <li>• Números negativos, letras ni notación científica (1e5).</li>
             <li>• Dejar vacías la oferta de un origen ni la demanda de un destino.</li>
             <li>• Repetir nombres dentro de orígenes o de destinos.</li>
-            <li>• Una oferta total menor que la demanda total.</li>
             <li>• Un destino con demanda y todas sus rutas vacías.</li>
           </ul>
         </div>

@@ -31,6 +31,7 @@ class TransbordoApiTests(APITestCase):
         d = self.resolver(ej).json()
         self.assertEqual(d["costo_total"], 5800)
         self.assertTrue(d["balanceado"])
+        self.assertTrue(d["cubierta"])
         for n in d["detalle_nodos"]:
             if n["tipo"] == "destino":
                 self.assertAlmostEqual(n["entra"] - n["sale"], n["cantidad"])
@@ -53,10 +54,14 @@ class TransbordoApiTests(APITestCase):
         h = next(n for n in d["detalle_nodos"] if n["nombre"] == "H")
         self.assertAlmostEqual(h["entra"], 4)
 
-    def test_infactible_por_capacidad(self):
-        e = cadena(direct=None, cap=4)
-        r = self.resolver(e)
-        self.assertEqual(r.status_code, 422)
+    def test_capacidad_insuficiente_deja_faltante(self):
+        # el único camino pasa por H, que admite 4: llegan 4 y faltan 6
+        d = self.resolver(cadena(direct=None, cap=4)).json()
+        self.assertFalse(d["cubierta"])
+        self.assertAlmostEqual(d["faltante_total"], 6)
+        self.assertEqual(d["costo_total"], 4 * 5)
+        dest = next(n for n in d["detalle_nodos"] if n["nombre"] == "D")
+        self.assertAlmostEqual(dest["faltante"], 6)
 
     def test_oferta_mayor_deja_sobrante(self):
         d = self.resolver(cadena(oferta=25)).json()
@@ -65,10 +70,27 @@ class TransbordoApiTests(APITestCase):
         o = next(n for n in d["detalle_nodos"] if n["nombre"] == "O")
         self.assertAlmostEqual(o["sale"], 10)
 
-    def test_oferta_menor_se_rechaza(self):
-        r = self.resolver(cadena(oferta=5))
-        self.assertEqual(r.status_code, 422)
-        self.assertIn("menor que la demanda total", " ".join(r.json()["detail"]))
+    def test_oferta_menor_entrega_lo_posible(self):
+        d = self.resolver(cadena(oferta=5)).json()
+        self.assertFalse(d["cubierta"])
+        self.assertAlmostEqual(d["faltante_total"], 5)
+        self.assertAlmostEqual(d["entregado_total"], 5)
+        self.assertEqual(d["costo_total"], 25)
+
+    def test_faltante_se_asigna_donde_sale_mas_caro(self):
+        e = {
+            "nodos": [
+                {"nombre": "O", "tipo": "origen", "cantidad": 10},
+                {"nombre": "X", "tipo": "destino", "cantidad": 8},
+                {"nombre": "Y", "tipo": "destino", "cantidad": 8},
+            ],
+            "costos": [[None, 1, 3], [None, None, None], [None, None, None]],
+        }
+        d = self.resolver(e).json()
+        self.assertEqual(d["costo_total"], 14)
+        falta = {n["nombre"]: n["faltante"] for n in d["detalle_nodos"]}
+        self.assertEqual(falta["X"], 0)
+        self.assertEqual(falta["Y"], 6)
 
     def test_destino_sin_rutas_de_llegada(self):
         e = cadena()
