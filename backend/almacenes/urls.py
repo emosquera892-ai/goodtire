@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from . import views
 from .casos import CasoViewSet, LoginView, RegistroView
+from .cuentas import RecuperarView, RestablecerView
 
 router = SimpleRouter(trailing_slash=False)
 router.register("casos", CasoViewSet, basename="caso")
@@ -16,6 +17,8 @@ urlpatterns = [
     path("problemas/<str:tipo>/ejemplo", views.ejemplo_tipo),
     path("problemas/<str:tipo>/resolver", views.ResolverTipoView.as_view()),
     path("auth/registro", RegistroView.as_view()),
+    path("auth/recuperar", RecuperarView.as_view()),
+    path("auth/restablecer", RestablecerView.as_view()),
     path("auth/token", LoginView.as_view()),
     path("auth/token/refresh", TokenRefreshView.as_view()),
     path("", include(router.urls)),

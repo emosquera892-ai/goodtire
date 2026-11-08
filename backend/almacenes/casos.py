@@ -24,10 +24,17 @@ COSTO_MAXIMO = 1e27
 
 class RegistroSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8, max_length=128)
+    email = serializers.EmailField(max_length=254)
 
     class Meta:
         model = User
         fields = ("username", "email", "password")
+
+    def validate_email(self, valor):
+        valor = valor.strip().lower()
+        if User.objects.filter(email__iexact=valor).exists():
+            raise serializers.ValidationError("Ya existe una cuenta con ese correo")
+        return valor
 
     def validate(self, attrs):
         user = User(username=attrs.get("username", ""), email=attrs.get("email", ""))

@@ -145,13 +145,15 @@ async function renovar(sesion: Sesion): Promise<boolean> {
   }
 }
 
+const ETIQUETAS: Record<string, string> = { username: "Usuario", email: "Correo", password: "Contraseña" };
+
 async function extraerErrores(res: Response): Promise<string[]> {
   try {
     const json = await res.json();
     const salida: string[] = [];
     const recorrer = (v: unknown, clave?: string) => {
       if (typeof v === "string") {
-        salida.push(clave && clave !== "detail" && clave !== "non_field_errors" ? `${clave}: ${v}` : v);
+        salida.push(clave && clave !== "detail" && clave !== "non_field_errors" ? `${ETIQUETAS[clave] ?? clave}: ${v}` : v);
       } else if (Array.isArray(v)) {
         v.forEach((x) => recorrer(x, clave));
       } else if (v && typeof v === "object") {
@@ -203,10 +205,19 @@ export async function iniciarSesion(usuario: string, clave: string) {
   guardarSesion({ access: t.access, refresh: t.refresh, usuario });
 }
 
-export async function registrar(usuario: string, clave: string) {
-  await pedir("/auth/registro", { method: "POST", body: JSON.stringify({ username: usuario, password: clave }) });
+export async function registrar(usuario: string, correo: string, clave: string) {
+  await pedir("/auth/registro", {
+    method: "POST",
+    body: JSON.stringify({ username: usuario, email: correo, password: clave }),
+  });
   await iniciarSesion(usuario, clave);
 }
+
+export const pedirRecuperacion = (correo: string) =>
+  pedir<{ detail: string }>("/auth/recuperar", { method: "POST", body: JSON.stringify({ email: correo }) });
+
+export const restablecerClave = (uid: string, token: string, clave: string) =>
+  pedir<{ detail: string }>("/auth/restablecer", { method: "POST", body: JSON.stringify({ uid, token, password: clave }) });
 
 export const listarCasos = (pagina = 1) => pedir<Pagina<CasoResumen>>(`/casos?page=${pagina}`, {}, true);
 export const obtenerCaso = (id: number) => pedir<Caso>(`/casos/${id}`, {}, true);

@@ -10,7 +10,7 @@ class BaseAuth(APITestCase):
         self.ej = self.client.get("/api/ejemplo").json()
 
     def registrar(self, usuario, password="Clave-segura-123"):
-        r = self.client.post("/api/auth/registro", {"username": usuario, "password": password}, format="json")
+        r = self.client.post("/api/auth/registro", {"username": usuario, "email": f"{usuario}@ejemplo.com", "password": password}, format="json")
         self.assertEqual(r.status_code, 201, r.content)
         t = self.client.post("/api/auth/token", {"username": usuario, "password": password}, format="json")
         self.assertEqual(t.status_code, 200, t.content)
@@ -30,12 +30,12 @@ class UsuariosTests(BaseAuth):
 
     def test_registro_rechaza_password_debil_o_corto(self):
         for pwd in ["12345678", "abc", "password"]:
-            r = self.client.post("/api/auth/registro", {"username": "x" + pwd, "password": pwd}, format="json")
+            r = self.client.post("/api/auth/registro", {"username": "x" + pwd, "email": f"x{pwd}@ejemplo.com", "password": pwd}, format="json")
             self.assertEqual(r.status_code, 400, pwd)
 
     def test_registro_rechaza_usuario_duplicado(self):
         self.registrar("ana")
-        r = self.client.post("/api/auth/registro", {"username": "ana", "password": "Otra-clave-456"}, format="json")
+        r = self.client.post("/api/auth/registro", {"username": "ana", "email": "otra@ejemplo.com", "password": "Otra-clave-456"}, format="json")
         self.assertEqual(r.status_code, 400)
 
     def test_login_con_credenciales_malas(self):
