@@ -159,3 +159,44 @@ select option {
   background-color: var(--color-obsidian);
 }
 /* sin-tarjetas:fin */
+
+/* Mapa de calles (Leaflet) */
+.leaflet-container.mapa-calles {
+  background: #1a1a1c;
+  font-family: inherit;
+}
+.leaflet-tooltip.etiqueta-calle {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #f5f5f7;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0;
+  text-shadow: 0 0 3px #000, 0 0 3px #000, 0 0 6px #000;
+}
+.leaflet-tooltip-bottom.etiqueta-calle::before {
+  display: none;
+}
+.mapa-calles.sin-etiquetas-calle .leaflet-tooltip.etiqueta-calle {
+  display: none;
+}
+.mapa-calles .leaflet-bar a {
+  background-color: #1d1d1f;
+  border-bottom-color: #333336;
+  color: #f5f5f7;
+}
+.mapa-calles .leaflet-bar a:hover {
+  background-color: #333336;
+}
+.mapa-calles .leaflet-bar {
+  border: 1px solid #333336;
+  box-shadow: none;
+}
+.mapa-calles .leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.6);
+  color: #a1a1a6;
+}
+.mapa-calles .leaflet-control-attribution a {
+  color: #2997ff;
+}

@@ -6,6 +6,9 @@ const LAT_MAX = 85;
 /** Mercator: la longitud tal cual y la latitud estirada (en "grados mercator"). */
 export const mercY = (lat: number) => -(180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (Math.max(-LAT_MAX, Math.min(LAT_MAX, lat)) * Math.PI) / 360));
 
+/** Inversa de mercY: latitud real a partir de la "y mercator". */
+export const latDesdeMercY = (y: number) => (360 / Math.PI) * Math.atan(Math.exp((-y * Math.PI) / 180)) - 90;
+
 function decodificar(lista: number[][]): Anillo[] {
   return lista.map((r) => {
     const pts = new Float32Array(r.length);

@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { numero } from "@/lib/api";
 import { ubicarNombres, type TablaCiudades } from "@/lib/ciudades";
-import { trazo, type Caja, type GeoMundo } from "@/lib/geo";
+import { latDesdeMercY, trazo, type Caja, type GeoMundo } from "@/lib/geo";
 import type { DatosMapa, NodoMapa, Rol } from "@/lib/mapa";
+import { MapaCalles } from "./MapaCalles";
 import { Boton, Seccion } from "./ui";
 
 type Base = { geo: GeoMundo; tabla: TablaCiudades };
@@ -42,6 +43,7 @@ export function MapaRed({
   const [capa1, setCapa1] = useState(true);
   const [capa2, setCapa2] = useState(true);
   const [cerrados, setCerrados] = useState(true);
+  const [modo, setModo] = useState<"esquema" | "calles">("esquema");
 
   useEffect(() => {
     let vivo = true;
@@ -139,6 +141,8 @@ export function MapaRed({
     return { paises: trazo(base.geo.paises, m.caja, true, tol), estados: trazo(base.geo.estados, m.caja, false, tol), lagos: trazo(base.geo.lagos, m.caja, true, tol) };
   }, [m, base]);
 
+  const puntosCalle = useMemo(() => (m ? m.puntos.map((p) => ({ id: p.id, nombre: p.nombre, rol: p.rol, abierto: p.abierto, valor: p.valor, lon: p.bx, lat: latDesdeMercY(p.by) })) : []), [m]);
+
   if (!m) return null;
   const { puntos, etiquetas, sin, vista, u } = m;
   const porId = new Map(puntos.map((p) => [p.id, p]));
@@ -198,6 +202,15 @@ export function MapaRed({
       id="res-mapa" titulo="Mapa"
       nota="Ubicación de las ciudades y envíos del plan (el grosor de la línea es proporcional a las unidades). Toca un punto para resaltar sus envíos en el plan de abajo; toca de nuevo o el fondo para quitar la selección."
     >
+      <div className="mb-3 flex flex-wrap items-center gap-2" role="group" aria-label="Tipo de mapa">
+        <Boton variante="secundario" activo={modo === "esquema"} onClick={() => setModo("esquema")}>
+          Esquemático
+        </Boton>
+        <Boton variante="secundario" activo={modo === "calles"} onClick={() => setModo("calles")}>
+          Calles
+        </Boton>
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <Boton variante="secundario" activo={capa1} onClick={() => setCapa1(!capa1)}>
           {hayCapa2 ? "Planta → almacén" : "Envíos"}
@@ -214,7 +227,24 @@ export function MapaRed({
         )}
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-[20px] bg-obsidian">
+      {modo === "calles" && (
+        <div className="mt-4 print:hidden">
+          <MapaCalles
+            puntos={puntosCalle}
+            flujos={flujos}
+            capa1={capa1}
+            capa2={capa2}
+            cerrados={cerrados}
+            foco={foco}
+            seleccion={seleccion}
+            onSeleccion={onSeleccion}
+            onActivo={setActivo}
+          />
+          <p className="mt-2 text-[12px] text-ash">Arrastra para moverte, usa + / − para el zoom o haz clic en el mapa y usa la rueda del ratón.</p>
+        </div>
+      )}
+
+      <div className={`mt-4 overflow-hidden rounded-[20px] bg-obsidian ${modo === "calles" ? "hidden print:block" : ""}`}>
         <svg viewBox={vista} role="img" aria-label="Mapa con las ciudades y los envíos del plan" className="block h-auto w-full" onClick={() => onSeleccion?.(null)}>
           {rutas && (
             <>
@@ -272,6 +302,16 @@ export function MapaRed({
           <>
             <strong>{nodoActivo.nombre}</strong> · {NOMBRE_ROL[nodoActivo.rol] ?? nodoActivo.rol}
             {nodoActivo.detalle ? ` · ${nodoActivo.detalle}` : ""}
+            {modo === "calles" && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${latDesdeMercY(nodoActivo.by).toFixed(5)},${nodoActivo.bx.toFixed(5)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="ml-3 text-[13px] text-electric-link underline"
+              >
+                Abrir en Google Maps ↗
+              </a>
+            )}
             {seleccion === nodoActivo.id && onSeleccion && (
               <button type="button" onClick={() => onSeleccion(null)} className="ml-3 text-[13px] text-electric-link underline">
                 Quitar selección
@@ -291,7 +331,11 @@ export function MapaRed({
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[12px] text-ash">Mapa: Natural Earth y us-atlas (dominio público) · ciudades: GeoNames (CC BY 4.0)</p>
+      <p className="mt-3 text-[12px] text-ash">
+        {modo === "calles"
+          ? "Mapa de calles: © colaboradores de OpenStreetMap · estilo © CARTO · ciudades: GeoNames (CC BY 4.0)"
+          : "Mapa: Natural Earth y us-atlas (dominio público) · ciudades: GeoNames (CC BY 4.0)"}
+      </p>
       {sin.length > 0 && (
         <p className="mt-3 text-[13px] text-ash">
           No se pudieron ubicar en el mapa: {sin.join(", ")}. El mapa reconoce por su nombre (en español o inglés) las ciudades de más de 100 000 habitantes y las capitales de todo el mundo.
