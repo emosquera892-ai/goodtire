@@ -5,6 +5,7 @@ import type { ProblemaA, SolucionA } from "@/lib/asignacion";
 import { hojasAsignacion } from "@/lib/exportar";
 import { Contador } from "./Contador";
 import { Exportar } from "./Exportar";
+import { PasosAsignacion } from "./PasosAsignacion";
 import { RedTransporte } from "./RedTransporte";
 import { Metrica, Tabla } from "./Resultados";
 import { Seccion } from "./ui";
@@ -54,6 +55,10 @@ export function ResultadosAsignacion({ solucion, problema }: { solucion: Solucio
           filas={solucion.asignaciones.map((a) => [a.agente, a.tarea, numero(a.costo)])}
         />
       </Seccion>
+
+      <div className="no-imprimir">
+        <PasosAsignacion key={JSON.stringify(problema)} problema={problema} />
+      </div>
     </div>
   );
 }

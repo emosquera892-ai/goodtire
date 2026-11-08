@@ -4,7 +4,7 @@ import random
 from django.core.cache import cache
 from rest_framework.test import APITestCase
 
-from . import pasos_transporte, transporte
+from . import pasos_asignacion, pasos_transporte, transporte
 from .esquema import ErrorDatos
 from .transporte import EJEMPLO
 
@@ -104,3 +104,59 @@ class PasosUbicacionTests(APITestCase):
             e["costo_almacen_cliente"].append([1] * len(e["clientes"]))
         self.assertEqual(self.pedir(e).status_code, 422)
         self.assertEqual(self.pedir({"x": 1}).status_code, 422)
+
+
+class PasosAsignacionTests(APITestCase):
+    def setUp(self):
+        cache.clear()
+
+    def pedir(self, datos):
+        return self.client.post("/api/problemas/asignacion/pasos", {"datos": datos}, format="json")
+
+    def test_machineco_da_15(self):
+        from .asignacion import EJEMPLO
+
+        r = self.pedir(EJEMPLO)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.assertEqual(d["resultado"]["costo_total"], 15)
+        self.assertEqual(d["pasos"][-1]["tipo"], "final")
+        self.assertTrue(any(p["tipo"] == "ajustar" for p in d["pasos"]))
+
+    def test_maximizar_y_rectangular(self):
+        from .asignacion import EJEMPLO
+
+        e = copy.deepcopy(EJEMPLO)
+        e["objetivo"] = "maximizar"
+        e["agentes"].append("Máquina 5")
+        e["costos"].append([1, 2, 3, 4])
+        d = self.pedir(e).json()
+        from . import asignacion
+
+        self.assertEqual(d["resultado"]["costo_total"], asignacion.resolver(asignacion.parsear(e))["costo_total"])
+        self.assertEqual(len(d["resultado"]["agentes_sin_tarea"]), 1)
+
+    def test_imposible_y_datos_malos(self):
+        e = {"agentes": ["a", "b", "c"], "tareas": ["x", "y", "z"], "objetivo": "minimizar",
+             "costos": [[1, None, None], [1, None, None], [1, 1, 1]]}
+        self.assertEqual(self.pedir(e).status_code, 422)
+        self.assertEqual(self.pedir({"x": 1}).status_code, 422)
+
+    def test_coincide_con_el_solver_en_casos_aleatorios(self):
+        from . import asignacion
+
+        rnd = random.Random(2)
+        for _ in range(80):
+            a, b = rnd.randint(1, 5), rnd.randint(1, 5)
+            datos = {
+                "agentes": [f"a{i}" for i in range(a)], "tareas": [f"t{j}" for j in range(b)],
+                "costos": [[rnd.randint(0, 20) if rnd.random() < 0.85 else None for _ in range(b)] for _ in range(a)],
+                "objetivo": rnd.choice(["minimizar", "maximizar"]),
+            }
+            try:
+                p = asignacion.parsear(datos)
+                ref = asignacion.resolver(p)["costo_total"]
+            except ErrorDatos:
+                continue
+            r = pasos_asignacion.generar(p)["resultado"]["costo_total"]
+            self.assertAlmostEqual(r, ref, places=6)
