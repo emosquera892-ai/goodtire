@@ -232,3 +232,8 @@ html[data-tema="claro"] [stroke="#ffd500"] {
   stroke: #b38600;
 }
 /* :tema-claro:fin */
+
+/* rejilla-claro: sin cuadrícula de fondo en modo claro */
+html[data-tema="claro"] svg:has(pattern#rejilla) {
+  display: none;
+}
