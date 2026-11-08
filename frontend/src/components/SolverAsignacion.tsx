@@ -26,6 +26,8 @@ import { RedTransporte } from "./RedTransporte";
 import { ResultadosAsignacion } from "./ResultadosAsignacion";
 import { resumenAsignacion } from "@/lib/escenarios";
 import { Escenarios } from "./Escenarios";
+import { PanelLateral } from "./PanelLateral";
+import { PANEL_ASIGNACION } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { Boton, Campo } from "./ui";
 
@@ -165,7 +167,9 @@ export function SolverAsignacion() {
   const vistaD = estado.tareas.map((n, j) => n.trim() || `Tarea ${j + 1}`);
 
   return (
-    <section id="resolver" className="mx-auto w-full max-w-6xl scroll-mt-16 px-6 py-12">
+    <section id="resolver" className="mx-auto w-full max-w-[88rem] scroll-mt-16 px-6 py-12 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 print:block">
+      <PanelLateral entradas={PANEL_ASIGNACION} tieneResultado={!!resultado} />
+      <div className="min-w-0 max-w-6xl">
       <h1 className="text-[clamp(32px,5vw,56px)] font-semibold leading-[1.07] tracking-[-0.015em] text-porcelain">
         Problema de asignación.
       </h1>
@@ -200,7 +204,7 @@ export function SolverAsignacion() {
         <EditorAsignacion estado={estado} onCambio={cambiar} errores={errores} intentado={intentado} />
       </div>
 
-      <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
+      <div id="accion" className="mt-6 scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
         <div className="flex flex-wrap items-center gap-4">
           <Boton onClick={() => void calcular()} disabled={cargando} className="px-6 py-2.5">
             {cargando ? "Calculando…" : "Resolver"}
@@ -223,7 +227,7 @@ export function SolverAsignacion() {
         )}
       </div>
 
-      <div ref={refResultado} className="mt-6 scroll-mt-16 space-y-6">
+      <div ref={refResultado} id="resultado" className="mt-6 scroll-mt-16 space-y-6">
         {resultado ? (
           <>
             {desactualizado && (
@@ -246,7 +250,7 @@ export function SolverAsignacion() {
 
       <Escenarios actual={resultado ? resumenAsignacion(resultado.solucion) : null} />
 
-      <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
+      <div id="guardar-caso" className="mt-6 scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
         <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Guardar caso</h3>
         {usuario ? (
           <>
@@ -282,6 +286,7 @@ export function SolverAsignacion() {
             <Boton onClick={abrirLogin}>Entrar o crear cuenta</Boton>
           </div>
         )}
+      </div>
       </div>
     </section>
   );

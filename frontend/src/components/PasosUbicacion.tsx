@@ -130,7 +130,7 @@ export function PasosUbicacion({ problema }: { problema: Problema }) {
 
   return (
     <Seccion
-      titulo="Solución paso a paso"
+      id="paso-a-paso" titulo="Solución paso a paso"
       nota="Cómo se decide qué almacenes abrir: se prueba cada combinación, se suma su costo fijo al de transporte y se elige la más barata."
     >
       {!datos && (

@@ -97,7 +97,7 @@ export function PasosAsignacion({ problema }: { problema: ProblemaA }) {
 
   return (
     <Seccion
-      titulo="Solución paso a paso"
+      id="paso-a-paso" titulo="Solución paso a paso"
       nota="Método húngaro: se crean ceros restando mínimos, se cubren con el menor número de líneas y, cuando hacen falta tantas líneas como filas, se escoge un cero por fila y columna."
     >
       {!datos && (

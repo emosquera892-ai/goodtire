@@ -151,7 +151,7 @@ export function Editor({ estado, onCambio, errores, intentado }: Props) {
       <Reglas />
 
       <Seccion
-        titulo="Plantas"
+        id="d-plantas" titulo="Plantas"
         nota="De dónde salen las llantas. Deja la capacidad vacía si la planta puede producir sin límite."
         acciones={
           <Boton variante="secundario" disabled={P >= LIMITES.plantas} onClick={() => onCambio(agregarPlanta(estado))}>
@@ -188,7 +188,7 @@ export function Editor({ estado, onCambio, errores, intentado }: Props) {
       </Seccion>
 
       <Seccion
-        titulo="Almacenes candidatos"
+        id="d-almacenes" titulo="Almacenes candidatos"
         nota="Libre: el modelo decide si abrirlo. Abierto: se abre obligatoriamente. Cerrado: queda excluido."
         acciones={
           <Boton variante="secundario" disabled={W >= LIMITES.almacenes} onClick={() => onCambio(agregarAlmacen(estado))}>
@@ -243,7 +243,7 @@ export function Editor({ estado, onCambio, errores, intentado }: Props) {
       </Seccion>
 
       <Seccion
-        titulo="Clientes"
+        id="d-clientes" titulo="Clientes"
         nota="Quiénes reciben las llantas y cuánto necesitan por mes."
         acciones={
           <Boton variante="secundario" disabled={C >= LIMITES.clientes} onClick={() => onCambio(agregarCliente(estado))}>
@@ -279,7 +279,7 @@ export function Editor({ estado, onCambio, errores, intentado }: Props) {
       </Seccion>
 
       <Seccion
-        titulo="Costo de envío: planta → almacén"
+        id="d-costo-pa" titulo="Costo de envío: planta → almacén"
         nota="Costo por unidad enviada desde cada planta (fila) a cada almacén (columna)."
       >
         <Matriz
@@ -294,7 +294,7 @@ export function Editor({ estado, onCambio, errores, intentado }: Props) {
       </Seccion>
 
       <Seccion
-        titulo="Costo de envío: almacén → cliente"
+        id="d-costo-ac" titulo="Costo de envío: almacén → cliente"
         nota="Costo por unidad enviada desde cada almacén (fila) a cada cliente (columna). Puedes pegar una tabla de Excel."
       >
         <Matriz
@@ -308,7 +308,7 @@ export function Editor({ estado, onCambio, errores, intentado }: Props) {
         />
       </Seccion>
 
-      <Seccion titulo="Opciones" nota="Ajustes opcionales del modelo.">
+      <Seccion id="d-opciones" titulo="Opciones" nota="Ajustes opcionales del modelo.">
         <div className="grid gap-5 sm:grid-cols-3">
           <label className="block">
             <span className="mb-1.5 block text-[14px] text-porcelain">Factor de unidades</span>

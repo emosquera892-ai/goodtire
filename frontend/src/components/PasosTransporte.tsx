@@ -267,7 +267,7 @@ export function PasosTransporte({ problema, tipo = "transporte" }: { problema: P
 
   return (
     <Seccion
-      titulo="Solución paso a paso"
+      id="paso-a-paso" titulo="Solución paso a paso"
       nota={
         tipo === "transbordo"
           ? "El transbordo se convierte en un problema de transporte (todos los nodos son origen y destino) y se resuelve con solución inicial + método MODI."

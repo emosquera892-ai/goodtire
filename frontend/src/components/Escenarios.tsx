@@ -43,7 +43,7 @@ export function Escenarios({ actual }: { actual: ResumenEsc | null }) {
 
   return (
     <Seccion
-      titulo="Comparar escenarios"
+      id="escenarios" titulo="Comparar escenarios"
       nota="Prueba «qué pasa si…»: guarda este resultado, cambia un dato arriba (una capacidad, un costo, una restricción), pulsa «Resolver» y guarda otro. Se comparan hasta 4 escenarios; el primero es la base."
       className="mt-6"
     >

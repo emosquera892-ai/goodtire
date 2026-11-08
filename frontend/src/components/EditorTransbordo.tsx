@@ -16,7 +16,7 @@ import { Boton, BotonQuitar, Campo, Seccion, Th, claseCampo } from "./ui";
 
 export function ReglasTransbordo() {
   return (
-    <section className="scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
+    <section id="introducir" className="scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
       <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">
         Transbordo: qué puedes introducir
       </h3>
@@ -72,7 +72,7 @@ export function EditorTransbordo({ estado, onCambio, errores, intentado }: Props
       <ReglasTransbordo />
 
       <Seccion
-        titulo="Nodos de la red"
+        id="d-nodos" titulo="Nodos de la red"
         nota="Origen: ofrece unidades. Intermedio: solo reenvía (bodega, centro). Destino: necesita unidades."
         acciones={
           <div className="flex flex-wrap gap-2">
@@ -126,7 +126,7 @@ export function EditorTransbordo({ estado, onCambio, errores, intentado }: Props
       </Seccion>
 
       <Seccion
-        titulo="Costo de envío por unidad"
+        id="d-costos" titulo="Costo de envío por unidad"
         nota="Desde (fila) → hacia (columna). Deja vacía la celda si esa ruta no existe. La diagonal está desactivada. Puedes pegar una tabla de Excel."
       >
         <Matriz

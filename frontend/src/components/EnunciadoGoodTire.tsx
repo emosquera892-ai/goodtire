@@ -7,9 +7,9 @@ import { Tabla } from "./Resultados";
 const num = (t: string) => Number(t).toLocaleString("es-CO");
 const dinero = (t: string) => "$" + num(t);
 
-function H({ n, children }: { n: number; children: ReactNode }) {
+function H({ n, children, id }: { n: number; children: ReactNode; id?: string }) {
   return (
-    <h4 className="mt-8 flex items-center gap-3 text-[19px] font-semibold tracking-[-0.2px] text-porcelain first:mt-0">
+    <h4 id={id} className="mt-8 scroll-mt-20 flex items-center gap-3 text-[19px] font-semibold tracking-[-0.2px] text-porcelain first:mt-0">
       <span className="grid h-7 w-7 place-items-center rounded-full bg-apple-blue/25 text-[13px] text-white">{n}</span>
       {children}
     </h4>
@@ -31,7 +31,7 @@ export function EnunciadoGoodTire() {
   const dem = e.clientes.reduce((s, c) => s + Number(c.demanda), 0);
 
   return (
-    <details className="group mt-8 rounded-[28px] bg-carbon">
+    <details id="enunciado" className="group mt-8 scroll-mt-16 rounded-[28px] bg-carbon">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-[28px] p-5 text-porcelain outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-apple-blue sm:px-8 sm:py-6 [&::-webkit-details-marker]:hidden">
         <span>
           <span className="block text-[21px] font-semibold tracking-[-0.2px]">Enunciado del problema y cómo se resuelve</span>
@@ -129,7 +129,7 @@ costo total                            =  costo fijo + costo de transporte`}</Fo
           se paga su costo fijo y puede enviar hasta su capacidad.
         </P>
 
-        <H n={4}>Cómo se resuelve</H>
+        <H n={4} id="enunciado-como">Cómo se resuelve</H>
         <ul className="mt-3 space-y-1.5">
           <Li>
             Se envía el modelo a un solver (<B>CBC</B>, con la librería PuLP), que usa <B>ramificación y acotamiento</B> (branch and bound):

@@ -83,7 +83,7 @@ export function ResultadosTransporte({ solucion, problema }: { solucion: Solucio
 
       <MapaRed datos={mapaTransporte(problema, solucion)} seleccion={sel} onSeleccion={setSel} />
 
-      <Seccion titulo="Plan de envíos" nota="Unidades enviadas por cada ruta y su costo.">
+      <Seccion id="plan" titulo="Plan de envíos" nota="Unidades enviadas por cada ruta y su costo.">
         <Tabla
           columnas={["Origen", "Destino", "Unidades", "Costo/u.", "Costo"]}
           resaltar={solucion.envios.map((e) => sel === `o:${e.origen}` || sel === `d:${e.destino}`)}

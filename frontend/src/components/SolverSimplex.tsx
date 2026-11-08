@@ -23,6 +23,8 @@ import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { GraficoSimplex } from "./GraficoSimplex";
 import { Algebraico, Tabular, aplanar } from "./PasosSimplex";
 import { Metrica } from "./Resultados";
+import { PanelLateral } from "./PanelLateral";
+import { PANEL_SIMPLEX } from "@/lib/paneles";
 import { Boton, BotonQuitar, Campo, Seccion, claseCampo } from "./ui";
 
 type Vista = "grafico" | "tabular" | "algebraico";
@@ -85,7 +87,9 @@ export function SolverSimplex() {
   const sol = resultado?.solucion;
 
   return (
-    <section id="resolver" className="mx-auto w-full max-w-6xl scroll-mt-16 px-6 py-12">
+    <section id="resolver" className="mx-auto w-full max-w-[88rem] scroll-mt-16 px-6 py-12 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 print:block">
+      <PanelLateral entradas={PANEL_SIMPLEX} tieneResultado={!!resultado} />
+      <div className="min-w-0 max-w-6xl">
       <h1 className="text-[clamp(32px,5vw,56px)] font-semibold leading-[1.07] tracking-[-0.015em] text-porcelain">Programación lineal.</h1>
       <p className="mt-3 max-w-2xl text-[17px] leading-[1.47] tracking-[-0.374px] text-ash">
         Escribe cualquier modelo (maximizar o minimizar, con restricciones ≤, ≥ o =) y míralo resuelto: gráfico con la región factible y los vértices (con 2 variables),
@@ -104,7 +108,7 @@ export function SolverSimplex() {
         </Boton>
       </div>
 
-      <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
+      <div id="modelo" className="mt-6 scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Modelo</h3>
@@ -238,7 +242,7 @@ export function SolverSimplex() {
         )}
       </div>
 
-      <div ref={refResultado} className="mt-6 scroll-mt-16 space-y-6">
+      <div ref={refResultado} id="resultado" className="mt-6 scroll-mt-16 space-y-6">
         {resultado && (
           <>
             {desactualizado && (
@@ -282,7 +286,7 @@ export function SolverSimplex() {
               )}
             </div>
 
-            <Seccion titulo="Cómo se resuelve" nota="Cambia de vista; los pasos tabular y algebraico comparten la misma iteración.">
+            <Seccion id="como-se-resuelve" titulo="Cómo se resuelve" nota="Cambia de vista; los pasos tabular y algebraico comparten la misma iteración.">
               <div className="flex flex-wrap gap-3">
                 {resultado.grafico && (
                   <Boton variante="secundario" activo={vista === "grafico"} onClick={() => setVista("grafico")}>
@@ -308,6 +312,7 @@ export function SolverSimplex() {
             </Seccion>
           </>
         )}
+      </div>
       </div>
     </section>
   );

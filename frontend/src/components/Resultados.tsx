@@ -187,7 +187,7 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
 
       <MapaRed datos={mapaUbicacion(problema, solucion)} seleccion={sel} onSeleccion={setSel} />
 
-      <Seccion titulo="Plan de envíos" nota="Unidades enviadas en cada tramo, en las mismas unidades que tu demanda.">
+      <Seccion id="plan" titulo="Plan de envíos" nota="Unidades enviadas en cada tramo, en las mismas unidades que tu demanda.">
         <div className="grid gap-6 lg:grid-cols-2">
           <div>
             <p className="mb-2 text-[14px] font-semibold text-porcelain">Planta → almacén</p>

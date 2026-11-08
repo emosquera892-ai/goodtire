@@ -195,7 +195,7 @@ export function MapaRed({
 
   return (
     <Seccion
-      titulo="Mapa"
+      id="res-mapa" titulo="Mapa"
       nota="Ubicación de las ciudades y envíos del plan (el grosor de la línea es proporcional a las unidades). Toca un punto para resaltar sus envíos en el plan de abajo; toca de nuevo o el fondo para quitar la selección."
     >
       <div className="flex flex-wrap items-center gap-2">

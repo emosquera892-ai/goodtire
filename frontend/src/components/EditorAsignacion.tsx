@@ -17,7 +17,7 @@ import { Boton, BotonQuitar, Campo, Seccion, claseCampo } from "./ui";
 
 export function ReglasAsignacion() {
   return (
-    <section className="scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
+    <section id="introducir" className="scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
       <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">
         Asignación: qué puedes introducir
       </h3>
@@ -72,6 +72,7 @@ function Lista({
 }) {
   return (
     <Seccion
+      id={titulo === "Agentes" ? "d-agentes" : undefined}
       titulo={titulo}
       nota={nota}
       acciones={
@@ -142,7 +143,7 @@ export function EditorAsignacion({ estado, onCambio, errores, intentado }: Props
       </div>
 
       <Seccion
-        titulo="Costo de cada asignación"
+        id="d-costos" titulo="Costo de cada asignación"
         nota="Agente (fila) → tarea (columna). Deja una celda vacía si esa asignación está prohibida. Puedes pegar una tabla de Excel."
       >
         <Matriz
@@ -156,7 +157,7 @@ export function EditorAsignacion({ estado, onCambio, errores, intentado }: Props
         />
       </Seccion>
 
-      <Seccion titulo="Objetivo" nota="¿Los valores son costos que quieres minimizar o beneficios que quieres maximizar?">
+      <Seccion id="d-objetivo" titulo="Objetivo" nota="¿Los valores son costos que quieres minimizar o beneficios que quieres maximizar?">
         <select
           aria-label="Objetivo"
           value={estado.objetivo}

@@ -70,7 +70,7 @@ export function ResultadosTransbordo({ solucion, problema }: { solucion: Solucio
 
       <MapaRed datos={mapaTransbordo(problema, solucion)} seleccion={sel} onSeleccion={setSel} />
 
-      <Seccion titulo="Plan de envíos" nota="Unidades por cada ruta activa y su costo.">
+      <Seccion id="plan" titulo="Plan de envíos" nota="Unidades por cada ruta activa y su costo.">
         <Tabla
           columnas={["Desde", "Hacia", "Unidades", "Costo/u.", "Costo"]}
           resaltar={solucion.flujos.map((f) => sel === `n:${f.desde}` || sel === `n:${f.hasta}`)}

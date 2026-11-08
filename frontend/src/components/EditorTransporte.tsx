@@ -16,7 +16,7 @@ import { Boton, BotonQuitar, Campo, Seccion, Th } from "./ui";
 
 export function ReglasTransporte() {
   return (
-    <section className="scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
+    <section id="introducir" className="scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
       <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">
         Transporte: qué puedes introducir
       </h3>
@@ -66,7 +66,7 @@ export function EditorTransporte({ estado, onCambio, errores, intentado }: Props
       <ReglasTransporte />
 
       <Seccion
-        titulo="Orígenes"
+        id="d-origenes" titulo="Orígenes"
         nota="De dónde sale la mercancía y cuánto puede enviar como máximo."
         acciones={
           <Boton variante="secundario" disabled={O >= LIMITES_T.origenes} onClick={() => onCambio(agregarOrigen(estado))}>
@@ -102,7 +102,7 @@ export function EditorTransporte({ estado, onCambio, errores, intentado }: Props
       </Seccion>
 
       <Seccion
-        titulo="Destinos"
+        id="d-destinos" titulo="Destinos"
         nota="Quiénes reciben la mercancía y cuánto necesitan."
         acciones={
           <Boton variante="secundario" disabled={D >= LIMITES_T.destinos} onClick={() => onCambio(agregarDestino(estado))}>
@@ -138,7 +138,7 @@ export function EditorTransporte({ estado, onCambio, errores, intentado }: Props
       </Seccion>
 
       <Seccion
-        titulo="Costo de envío por unidad"
+        id="d-costos" titulo="Costo de envío por unidad"
         nota="Origen (fila) → destino (columna). Deja una celda vacía si esa ruta no está disponible. Puedes pegar una tabla de Excel."
       >
         <Matriz

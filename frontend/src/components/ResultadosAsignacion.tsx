@@ -49,7 +49,7 @@ export function ResultadosAsignacion({ solucion, problema }: { solucion: Solucio
         </span>
       </p>
 
-      <Seccion titulo="Asignaciones" nota="Qué agente hace cada tarea y el valor de esa asignación.">
+      <Seccion id="plan" titulo="Asignaciones" nota="Qué agente hace cada tarea y el valor de esa asignación.">
         <Tabla
           columnas={["Agente", "Tarea", "Valor"]}
           filas={solucion.asignaciones.map((a) => [a.agente, a.tarea, numero(a.costo)])}

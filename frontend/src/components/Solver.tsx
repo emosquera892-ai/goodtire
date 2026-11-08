@@ -29,6 +29,8 @@ import { Resultados } from "./Resultados";
 import { abrirLogin, useUsuario } from "@/lib/sesion";
 import { resumenUbicacion } from "@/lib/escenarios";
 import { Escenarios } from "./Escenarios";
+import { PanelLateral } from "./PanelLateral";
+import { PANEL_UBICACION } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { Boton, Campo } from "./ui";
 
@@ -170,7 +172,9 @@ export function Solver() {
   };
 
   return (
-    <section id="resolver" className="mx-auto w-full max-w-6xl scroll-mt-16 px-6 py-12">
+    <section id="resolver" className="mx-auto w-full max-w-[88rem] scroll-mt-16 px-6 py-12 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 print:block">
+      <PanelLateral entradas={PANEL_UBICACION} tieneResultado={!!resultado} />
+      <div className="min-w-0 max-w-6xl">
       <h1 className="text-[clamp(32px,5vw,56px)] font-semibold leading-[1.07] tracking-[-0.015em] text-porcelain">
         Resuelve tu caso.
       </h1>
@@ -201,7 +205,7 @@ export function Solver() {
         <Editor estado={estado} onCambio={cambiar} errores={errores} intentado={intentado} />
       </div>
 
-      <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
+      <div id="accion" className="mt-6 scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
         <div className="flex flex-wrap items-center gap-4">
           <Boton onClick={() => void calcular()} disabled={cargando} className="px-6 py-2.5">
             {cargando ? "Calculando…" : "Resolver"}
@@ -224,7 +228,7 @@ export function Solver() {
         )}
       </div>
 
-      <div ref={refResultado} className="mt-6 scroll-mt-16 space-y-6">
+      <div ref={refResultado} id="resultado" className="mt-6 scroll-mt-16 space-y-6">
         {resultado ? (
           <>
             {desactualizado && (
@@ -247,7 +251,7 @@ export function Solver() {
 
       <Escenarios actual={resultado ? resumenUbicacion(resultado.solucion) : null} />
 
-      <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
+      <div id="guardar-caso" className="mt-6 scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8">
         <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Guardar caso</h3>
         {usuario ? (
           <>
@@ -281,6 +285,7 @@ export function Solver() {
             <Boton onClick={pedirLogin}>Entrar o crear cuenta</Boton>
           </div>
         )}
+      </div>
       </div>
     </section>
   );
