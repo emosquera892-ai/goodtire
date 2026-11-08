@@ -5,6 +5,7 @@ import { hojasTransporte } from "@/lib/exportar";
 import { moneda, type ProblemaT, type SolucionT } from "@/lib/transporte";
 import { Contador } from "./Contador";
 import { Exportar } from "./Exportar";
+import { PasosTransporte } from "./PasosTransporte";
 import { RedTransporte } from "./RedTransporte";
 import { Barra, Metrica, Tabla } from "./Resultados";
 import { Seccion } from "./ui";
@@ -88,6 +89,10 @@ export function ResultadosTransporte({ solucion, problema }: { solucion: Solucio
           ])}
         />
       </Seccion>
+
+      <div className="no-imprimir">
+        <PasosTransporte key={JSON.stringify(problema)} problema={problema} />
+      </div>
     </div>
   );
 }

@@ -116,3 +116,20 @@ class ResolverTipoView(APIView):
             return Response(t.resolver(t.parsear(request.data)))
         except ErrorDatos as e:
             return Response({"detail": e.mensajes}, status=422)
+
+
+class PasosTransporteView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "resolver"
+
+    def post(self, request):
+        from . import pasos_transporte, transporte
+
+        try:
+            cuerpo = request.data if isinstance(request.data, dict) else {}
+            datos = transporte.parsear(cuerpo.get("datos"))
+            metodo = cuerpo.get("metodo") or "vogel"
+            return Response(pasos_transporte.generar(datos, metodo))
+        except ErrorDatos as e:
+            return Response({"detail": e.mensajes}, status=422)
