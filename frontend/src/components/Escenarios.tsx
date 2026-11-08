@@ -24,9 +24,12 @@ export function Escenarios({ actual }: { actual: ResumenEsc | null }) {
   }
 
   const base = lista[0];
-  const mejor = lista.length
-    ? lista.reduce((a, b) => ((b.maximizar ? b.valor > a.valor : b.valor < a.valor) ? b : a))
-    : null;
+  // Estrella solo para quien gana de verdad: si todos dan el mismo valor, no hay mejor.
+  const valorMejor = lista.length
+    ? lista.reduce((a, b) => ((b.maximizar ? b.valor > a.valor : b.valor < a.valor) ? b : a)).valor
+    : 0;
+  const esMejor = (e: Esc) => Math.abs(e.valor - valorMejor) < 1e-9;
+  const todosIguales = lista.length > 1 && lista.every(esMejor);
   const maxValor = Math.max(1, ...lista.map((e) => Math.abs(e.valor)));
 
   function cambios(e: Esc) {
@@ -64,6 +67,9 @@ export function Escenarios({ actual }: { actual: ResumenEsc | null }) {
         )}
       </div>
       {!actual && <p className="mt-3 text-[13px] text-ash">Primero pulsa «Resolver» para tener un resultado que guardar.</p>}
+      {todosIguales && (
+        <p className="mt-3 text-[13px] text-ash">Todos los escenarios dan el mismo valor: ninguno es mejor. Cambia algún dato antes de guardar el siguiente.</p>
+      )}
       {lista.length >= MAX && <p className="mt-3 text-[13px] text-ash">Llegaste a {MAX} escenarios. Quita alguno para agregar otro.</p>}
 
       {lista.length > 0 && (
@@ -77,7 +83,7 @@ export function Escenarios({ actual }: { actual: ResumenEsc | null }) {
                     <div className="flex items-start justify-between gap-2">
                       <span>
                         {e.nombre}
-                        {mejor && lista.length > 1 && e.id === mejor.id && <span className="ml-1 text-[#30d158]">★</span>}
+                        {lista.length > 1 && !todosIguales && esMejor(e) && <span className="ml-1 text-[#30d158]">★</span>}
                       </span>
                       <button
                         type="button"
