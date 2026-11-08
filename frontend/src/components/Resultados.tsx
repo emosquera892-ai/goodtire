@@ -21,26 +21,39 @@ export function Metrica({ etiqueta, children }: { etiqueta: string; children: Re
   );
 }
 
+const pctTxt = (p: number) => `${p.toLocaleString("es-CO", { maximumFractionDigits: 1 })} %`;
+
 export function Barra({ etiqueta, uso, capacidad, pct }: { etiqueta: string; uso: number; capacidad: number | null; pct: number | null }) {
   const reducir = useReducedMotion();
+  const lleno = pct !== null && pct >= 99.5;
   return (
     <div>
-      <div className="flex flex-wrap justify-between gap-x-4 text-[14px] tracking-[-0.224px]">
-        <span className="text-porcelain">{etiqueta}</span>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 text-[14px] tracking-[-0.224px]">
+        <span className="font-medium text-porcelain">{etiqueta}</span>
         <span className="tabular-nums text-ash">
-          {numero(uso)} / {capacidad === null ? "ilimitada" : numero(capacidad)}
-          {pct !== null ? ` · ${pct}%` : ""}
+          {capacidad === null || pct === null ? (
+            <>Usa {numero(uso)} · sin límite de capacidad</>
+          ) : (
+            <>
+              Usa {numero(uso)} de {numero(capacidad)} <strong className="text-porcelain">({pctTxt(pct)})</strong>
+            </>
+          )}
         </span>
       </div>
-      {pct !== null && (
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-steel">
-          <motion.div
-            className={`h-full rounded-full ${pct >= 99.5 ? "bg-optical-yellow" : "bg-apple-blue"}`}
-            initial={reducir ? false : { width: 0 }}
-            animate={{ width: `${Math.min(100, pct)}%` }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </div>
+      {pct !== null && capacidad !== null && (
+        <>
+          <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-steel">
+            <motion.div
+              className={`h-full rounded-full ${lleno ? "bg-optical-yellow" : "bg-apple-blue"}`}
+              initial={reducir ? false : { width: 0 }}
+              animate={{ width: `${Math.min(100, pct)}%` }}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </div>
+          <p className={`mt-1 text-[12px] ${lleno ? "text-optical-yellow" : "text-ash"}`}>
+            {lleno ? "Al límite: no puede manejar más" : `Le quedan ${numero(Math.max(0, capacidad - uso))} libres`}
+          </p>
+        </>
       )}
     </div>
   );
@@ -129,7 +142,7 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
         )}
       </p>
 
-      <Seccion titulo="Utilización" nota="Cuánto de su capacidad usa cada planta y cada almacén abierto.">
+      <Seccion titulo="Utilización" nota="Qué parte de su capacidad usa cada planta y cada almacén abierto. Una barra amarilla significa que ya no puede manejar más.">
         <div className="space-y-5">
           {solucion.detalle_plantas.map((p) => (
             <Barra key={`p-${p.planta}`} etiqueta={`Planta · ${p.planta}`} uso={p.uso} capacidad={p.capacidad} pct={p.utilizacion_pct} />
@@ -138,41 +151,88 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
             <Barra key={`a-${a.almacen}`} etiqueta={`Almacén · ${a.almacen}`} uso={a.uso} capacidad={a.capacidad} pct={a.utilizacion_pct} />
           ))}
         </div>
+        <div className="mt-6 space-y-1 border-t border-steel pt-4 text-[14px] leading-[1.5] text-ash">
+          {(() => {
+            const llenos = solucion.detalle_almacenes.filter((x) => x.utilizacion_pct >= 99.5).map((x) => x.almacen);
+            const cerrados = problema.almacenes.filter((x) => !solucion.almacenes_abiertos.includes(x));
+            return (
+              <>
+                <p>
+                  <strong className="text-porcelain">Cómo leerlo: </strong>
+                  {llenos.length > 0
+                    ? `${llenos.join(" y ")} ${llenos.length > 1 ? "están" : "está"} al límite; si la demanda crece, ahí estaría el cuello de botella.`
+                    : "Ningún almacén está al límite: hay margen para que crezca la demanda."}
+                </p>
+                {cerrados.length > 0 && (
+                  <p>
+                    <strong className="text-porcelain">No se abre: </strong>
+                    {cerrados.join(", ")}.
+                  </p>
+                )}
+              </>
+            );
+          })()}
+        </div>
       </Seccion>
 
-      <Seccion titulo="Comparación de combinaciones" nota="Costo mensual total de cada conjunto factible de almacenes, de menor a mayor.">
+      <Seccion
+        titulo="Comparación de combinaciones"
+        nota="Cada fila es una forma distinta de elegir qué almacenes abrir. Gana la de menor costo total; las demás muestran cuánto más cuestan."
+      >
         {comp ? (
           <>
-            <div className="mb-4 flex gap-5 text-[12px] text-ash">
-              <span><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-slate" />Costo fijo</span>
+            <div className="mb-4 flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-ash">
+              <span><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-slate" />Costo fijo (abrir almacenes)</span>
               <span><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-apple-blue" />Transporte</span>
+              <span><span className="mr-1.5 inline-block h-3 w-0.5 translate-y-0.5 bg-porcelain" />Costo de la mejor opción</span>
             </div>
-            <ul className="space-y-4">
-              {comp.slice(0, todas ? undefined : 8).map((f, i) => (
-                <li key={f.almacenes.join("|")}>
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 text-[14px] tracking-[-0.224px]">
-                    <span className={i === 0 ? "font-semibold text-porcelain" : "text-ash"}>
-                      {f.almacenes.join(" · ")}
-                      {i === 0 && <span className="ml-2 text-electric-link">Óptimo</span>}
-                    </span>
-                    <span className="tabular-nums text-porcelain">{dinero(f.costo_total)}</span>
-                  </div>
-                  <div className="mt-1.5 flex h-2 overflow-hidden rounded-full bg-steel/50">
-                    <motion.div
-                      className="h-full bg-slate"
-                      initial={reducir ? false : { width: 0 }}
-                      animate={{ width: `${(f.costo_fijo / maxCosto) * 100}%` }}
-                      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                    />
-                    <motion.div
-                      className="h-full bg-apple-blue"
-                      initial={reducir ? false : { width: 0 }}
-                      animate={{ width: `${(f.costo_transporte / maxCosto) * 100}%` }}
-                      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                    />
-                  </div>
-                </li>
-              ))}
+            <ul className="space-y-5">
+              {comp.slice(0, todas ? undefined : 8).map((f, i) => {
+                const extra = f.costo_total - comp[0].costo_total;
+                const cierra = problema.almacenes.filter((x) => !f.almacenes.includes(x));
+                return (
+                  <li key={f.almacenes.join("|")}>
+                    <div className="flex items-start gap-3">
+                      <span className={`mt-0.5 grid h-6 min-w-6 place-items-center rounded-full px-1.5 text-[12px] font-semibold ${i === 0 ? "bg-apple-blue text-white" : "bg-steel text-ash"}`}>{i + 1}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 text-[14px] tracking-[-0.224px]">
+                          <span className={i === 0 ? "font-semibold text-porcelain" : "text-porcelain"}>
+                            Abre: {f.almacenes.join(", ")}
+                            {i === 0 && <span className="ml-2 rounded-full bg-apple-blue/20 px-2 py-0.5 text-[12px] font-semibold text-electric-link">Mejor opción</span>}
+                          </span>
+                          <span className="tabular-nums">
+                            <strong className="text-porcelain">{dinero(f.costo_total)}</strong>
+                            {i > 0 && (
+                              <span className="ml-2 text-optical-yellow">
+                                +{dinero(extra)} ({pctTxt((extra / comp[0].costo_total) * 100)})
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[12px] text-ash">
+                          {cierra.length > 0 ? `Cierra: ${cierra.join(", ")} · ` : "No cierra ninguno · "}
+                          Fijo {dinero(f.costo_fijo)} + transporte {dinero(f.costo_transporte)}
+                        </p>
+                        <div className="relative mt-1.5 flex h-2.5 overflow-hidden rounded-full bg-steel/50">
+                          <motion.div
+                            className="h-full bg-slate"
+                            initial={reducir ? false : { width: 0 }}
+                            animate={{ width: `${(f.costo_fijo / maxCosto) * 100}%` }}
+                            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                          />
+                          <motion.div
+                            className="h-full bg-apple-blue"
+                            initial={reducir ? false : { width: 0 }}
+                            animate={{ width: `${(f.costo_transporte / maxCosto) * 100}%` }}
+                            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                          />
+                          <span aria-hidden className="absolute inset-y-0 w-0.5 bg-porcelain" style={{ left: `${(comp[0].costo_total / maxCosto) * 100}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
             {comp.length > 8 && (
               <Boton variante="enlace" className="mt-4" onClick={() => setTodas((v) => !v)}>
