@@ -65,12 +65,12 @@ export function AuthModal({ abierto, onCerrar }: { abierto: boolean; onCerrar: (
         if (ev.target === ref.current) onCerrar();
       }}
       aria-labelledby="titulo-auth"
-      className="m-auto w-[min(92vw,420px)] rounded-[28px] bg-carbon p-8 text-porcelain backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+      className="m-0 h-dvh max-h-none w-dvw max-w-none overflow-y-auto bg-transparent p-0 text-porcelain backdrop:bg-black/70 backdrop:backdrop-blur-sm"
     >
-      <form onSubmit={enviar} className="space-y-5">
-        <p aria-hidden className="text-[38px] font-black uppercase leading-none tracking-[-0.01em] text-apple-blue">
-          Good Tire
-        </p>
+      <p aria-hidden className="mx-auto max-w-6xl px-6 pt-6 text-[38px] font-black uppercase leading-none tracking-[-0.01em] text-apple-blue">
+        Good Tire
+      </p>
+      <form onSubmit={enviar} className="mx-auto my-[8vh] w-[min(92vw,420px)] space-y-5 rounded-[28px] bg-carbon p-8">
         <h2 id="titulo-auth" className="text-[28px] font-semibold leading-none tracking-[0.196px]">
           {TITULO[modo]}
         </h2>
