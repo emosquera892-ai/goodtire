@@ -79,11 +79,13 @@ export function Cabecera() {
           id="menu-principal"
           className={`${menu ? "flex" : "hidden"} absolute inset-x-0 top-11 flex-col gap-1 border-b border-white/10 bg-black/95 p-4 md:static md:flex md:flex-row md:items-center md:gap-1 md:border-0 md:bg-transparent md:p-0`}
         >
-          <li>
-            <Enlace href="/" activo={ruta === "/"} onClick={cerrar}>
-              Inicio
-            </Enlace>
-          </li>
+          {!usuario && (
+            <li>
+              <Enlace href="/" activo={ruta === "/"} onClick={cerrar}>
+                Inicio
+              </Enlace>
+            </li>
+          )}
 
           <li ref={caja} className="relative">
             <button
