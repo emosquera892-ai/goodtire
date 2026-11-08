@@ -160,47 +160,24 @@ select option {
 }
 /* sin-tarjetas:fin */
 
-/* Mapa de calles (Leaflet) */
+/* Mapa de calles (Leaflet) — modo claro */
 .leaflet-container.mapa-calles {
-  background: #1a1a1c;
+  background: #e8e6e1;
   font-family: inherit;
 }
 .leaflet-tooltip.etiqueta-calle {
   background: transparent;
   border: 0;
   box-shadow: none;
-  color: #f5f5f7;
+  color: #1d1d1f;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 0;
-  text-shadow: 0 0 3px #000, 0 0 3px #000, 0 0 6px #000;
-}
-/* Las teselas de OpenStreetMap son claras: se invierten para que combinen con el tema oscuro */
-.mapa-calles .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.7);
+  text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff;
 }
 .leaflet-tooltip-bottom.etiqueta-calle::before {
   display: none;
 }
 .mapa-calles.sin-etiquetas-calle .leaflet-tooltip.etiqueta-calle {
   display: none;
-}
-.mapa-calles .leaflet-bar a {
-  background-color: #1d1d1f;
-  border-bottom-color: #333336;
-  color: #f5f5f7;
-}
-.mapa-calles .leaflet-bar a:hover {
-  background-color: #333336;
-}
-.mapa-calles .leaflet-bar {
-  border: 1px solid #333336;
-  box-shadow: none;
-}
-.mapa-calles .leaflet-control-attribution {
-  background: rgba(0, 0, 0, 0.6);
-  color: #a1a1a6;
-}
-.mapa-calles .leaflet-control-attribution a {
-  color: #2997ff;
 }
