@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { dinero, numero, type Problema, type Solucion } from "@/lib/api";
 import { hojasUbicacion } from "@/lib/exportar";
 import { Contador } from "./Contador";
@@ -46,9 +46,18 @@ export function Barra({ etiqueta, uso, capacidad, pct }: { etiqueta: string; uso
   );
 }
 
-export function Tabla({ columnas, filas }: { columnas: string[]; filas: (string | number)[][] }) {
+export function Tabla({ columnas, filas, resaltar }: { columnas: string[]; filas: (string | number)[][]; resaltar?: boolean[] }) {
+  const caja = useRef<HTMLDivElement>(null);
+  const hay = !!resaltar && resaltar.some(Boolean);
+  const primera = hay ? resaltar.findIndex(Boolean) : -1;
+  useEffect(() => {
+    const c = caja.current;
+    if (!c || primera < 0) return;
+    const tr = c.querySelectorAll("tbody tr")[primera] as HTMLElement | undefined;
+    if (tr) c.scrollTo({ top: Math.max(0, tr.offsetTop - 44), behavior: "smooth" });
+  }, [primera, hay]);
   return (
-    <div className="max-h-72 overflow-auto rounded-[20px] border border-steel">
+    <div ref={caja} className="max-h-72 overflow-auto rounded-[20px] border border-steel">
       <table className="w-full min-w-[420px] border-collapse text-[13px]">
         <thead className="sticky top-0 bg-carbon">
           <tr>
@@ -61,7 +70,11 @@ export function Tabla({ columnas, filas }: { columnas: string[]; filas: (string 
         </thead>
         <tbody>
           {filas.map((f, i) => (
-            <tr key={i} className="border-t border-steel">
+            <tr
+              key={i}
+              className={`border-t border-steel transition-opacity ${hay ? (resaltar![i] ? "bg-slate/60 font-semibold" : "opacity-40") : ""}`}
+              aria-current={hay && resaltar![i] ? "true" : undefined}
+            >
               {f.map((v, j) => (
                 <td key={j} className={`p-2.5 tabular-nums text-porcelain ${j >= columnas.length - 2 ? "text-right" : ""}`}>
                   {v}
@@ -78,6 +91,7 @@ export function Tabla({ columnas, filas }: { columnas: string[]; filas: (string 
 export function Resultados({ solucion, problema }: { solucion: Solucion; problema: Problema }) {
   const reducir = useReducedMotion();
   const [todas, setTodas] = useState(false);
+  const [sel, setSel] = useState<string | null>(null);
   const comp = solucion.comparacion;
   const maxCosto = comp ? Math.max(...comp.map((f) => f.costo_total)) : 1;
   const segundo = comp && comp.length > 1 ? comp[1] : null;
@@ -171,7 +185,7 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
         )}
       </Seccion>
 
-      <MapaRed datos={mapaUbicacion(problema, solucion)} />
+      <MapaRed datos={mapaUbicacion(problema, solucion)} seleccion={sel} onSeleccion={setSel} />
 
       <Seccion titulo="Plan de envíos" nota="Unidades enviadas en cada tramo, en las mismas unidades que tu demanda.">
         <div className="grid gap-6 lg:grid-cols-2">
@@ -180,6 +194,7 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
             <Tabla
               columnas={["Planta", "Almacén", "Unidades", "Costo/u."]}
               filas={solucion.envios_planta_almacen.map((e) => [e.planta, e.almacen, numero(e.unidades), numero(e.costo_unitario)])}
+              resaltar={solucion.envios_planta_almacen.map((e) => sel === `p:${e.planta}` || sel === `a:${e.almacen}`)}
             />
           </div>
           <div>
@@ -187,6 +202,7 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
             <Tabla
               columnas={["Almacén", "Cliente", "Unidades", "Costo/u."]}
               filas={solucion.envios_almacen_cliente.map((e) => [e.almacen, e.cliente, numero(e.unidades), numero(e.costo_unitario)])}
+              resaltar={solucion.envios_almacen_cliente.map((e) => sel === `a:${e.almacen}` || sel === `c:${e.cliente}`)}
             />
           </div>
         </div>

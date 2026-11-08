@@ -27,7 +27,15 @@ const NOMBRE_ROL: Record<Rol, string> = {
 };
 const ASPECTO = 1.6;
 
-export function MapaRed({ datos }: { datos: DatosMapa }) {
+export function MapaRed({
+  datos,
+  seleccion = null,
+  onSeleccion,
+}: {
+  datos: DatosMapa;
+  seleccion?: string | null;
+  onSeleccion?: (id: string | null) => void;
+}) {
   const [geo, setGeo] = useState<Geo | null>(null);
   const [activo, setActivo] = useState<string | null>(null);
   const [capa1, setCapa1] = useState(true);
@@ -130,18 +138,33 @@ export function MapaRed({ datos }: { datos: DatosMapa }) {
   const hayCapa2 = datos.flujos.some((f) => f.capa === 2);
   const hayCerrados = datos.nodos.some((n) => n.rol === "almacen" && n.abierto === false);
   const maxV = Math.max(1, ...puntos.filter((p) => p.rol === "cliente" || p.rol === "destino").map((p) => p.valor ?? 0));
-  const nodoActivo = activo ? porId.get(activo) : null;
+  const foco = activo ?? seleccion;
+  const nodoActivo = foco ? porId.get(foco) : null;
   const rolesPresentes = Array.from(new Set(puntos.map((p) => (p.rol === "almacen" && p.abierto === false ? null : p.rol)).filter(Boolean))) as Rol[];
 
   const forma = (p: Punto) => {
-    const act = activo === p.id;
+    const act = foco === p.id;
+    const sel = seleccion === p.id;
     const color = COLOR[p.rol];
     const cerrado = p.rol === "almacen" && p.abierto === false;
     const r = (p.rol === "cliente" || p.rol === "destino" ? 4.5 + 4.5 * Math.sqrt((p.valor ?? 0) / maxV) : 7) * u * (act ? 1.25 : 1);
     const común = {
-      stroke: "var(--color-obsidian)",
-      strokeWidth: 1.5 * u,
+      stroke: sel ? "var(--color-porcelain)" : "var(--color-obsidian)",
+      strokeWidth: (sel ? 3 : 1.5) * u,
       tabIndex: 0,
+      role: "button" as const,
+      "aria-pressed": sel,
+      "aria-label": `${p.nombre}: resaltar en el plan de envíos`,
+      onClick: (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onSeleccion?.(sel ? null : p.id);
+      },
+      onKeyDown: (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSeleccion?.(sel ? null : p.id);
+        }
+      },
       onMouseEnter: () => setActivo(p.id),
       onMouseLeave: () => setActivo(null),
       onFocus: () => setActivo(p.id),
@@ -164,7 +187,7 @@ export function MapaRed({ datos }: { datos: DatosMapa }) {
   return (
     <Seccion
       titulo="Mapa"
-      nota="Ubicación de las ciudades y envíos del plan (el grosor de la línea es proporcional a las unidades). Pasa el cursor sobre un punto para ver su detalle."
+      nota="Ubicación de las ciudades y envíos del plan (el grosor de la línea es proporcional a las unidades). Toca un punto para resaltar sus envíos en el plan de abajo; toca de nuevo o el fondo para quitar la selección."
     >
       <div className="flex flex-wrap items-center gap-2">
         <Boton variante="secundario" activo={capa1} onClick={() => setCapa1(!capa1)}>
@@ -183,7 +206,7 @@ export function MapaRed({ datos }: { datos: DatosMapa }) {
       </div>
 
       <div className="mt-4 overflow-hidden rounded-[20px] bg-obsidian">
-        <svg viewBox={vista} role="img" aria-label="Mapa de EE. UU. con las ciudades y los envíos del plan" className="block h-auto w-full">
+        <svg viewBox={vista} role="img" aria-label="Mapa de EE. UU. con las ciudades y los envíos del plan" className="block h-auto w-full" onClick={() => onSeleccion?.(null)}>
           {geo && (
             <>
               <path d={geo.CONTORNO} fill="var(--color-carbon)" stroke="var(--color-slate)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
@@ -194,7 +217,7 @@ export function MapaRed({ datos }: { datos: DatosMapa }) {
             if ((f.capa === 1 && !capa1) || (f.capa === 2 && !capa2)) return null;
             const a = porId.get(f.desde)!;
             const b = porId.get(f.hasta)!;
-            const conectado = activo ? f.desde === activo || f.hasta === activo : true;
+            const conectado = foco ? f.desde === foco || f.hasta === foco : true;
             return (
               <line
                 key={i}
@@ -239,6 +262,11 @@ export function MapaRed({ datos }: { datos: DatosMapa }) {
           <>
             <strong>{nodoActivo.nombre}</strong> · {NOMBRE_ROL[nodoActivo.rol] ?? nodoActivo.rol}
             {nodoActivo.detalle ? ` · ${nodoActivo.detalle}` : ""}
+            {seleccion === nodoActivo.id && onSeleccion && (
+              <button type="button" onClick={() => onSeleccion(null)} className="ml-3 text-[13px] text-electric-link underline">
+                Quitar selección
+              </button>
+            )}
           </>
         ) : (
           <span className="text-ash">Toca o pasa el cursor sobre un punto del mapa.</span>

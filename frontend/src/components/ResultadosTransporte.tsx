@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { numero } from "@/lib/api";
 import { hojasTransporte } from "@/lib/exportar";
 import { moneda, type ProblemaT, type SolucionT } from "@/lib/transporte";
@@ -13,6 +14,7 @@ import { Barra, Metrica, Tabla } from "./Resultados";
 import { Seccion } from "./ui";
 
 export function ResultadosTransporte({ solucion, problema }: { solucion: SolucionT; problema: ProblemaT }) {
+  const [sel, setSel] = useState<string | null>(null);
   const enviadas = solucion.detalle_destinos.reduce((s, d) => s + d.recibido, 0);
   const sobrante = solucion.oferta_total - enviadas;
   const falta = solucion.faltante_total ?? 0;
@@ -79,11 +81,12 @@ export function ResultadosTransporte({ solucion, problema }: { solucion: Solucio
         </div>
       </Seccion>
 
-      <MapaRed datos={mapaTransporte(problema, solucion)} />
+      <MapaRed datos={mapaTransporte(problema, solucion)} seleccion={sel} onSeleccion={setSel} />
 
       <Seccion titulo="Plan de envíos" nota="Unidades enviadas por cada ruta y su costo.">
         <Tabla
           columnas={["Origen", "Destino", "Unidades", "Costo/u.", "Costo"]}
+          resaltar={solucion.envios.map((e) => sel === `o:${e.origen}` || sel === `d:${e.destino}`)}
           filas={solucion.envios.map((e) => [
             e.origen,
             e.destino,

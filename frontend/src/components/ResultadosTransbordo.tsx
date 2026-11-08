@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { numero } from "@/lib/api";
 import { hojasTransbordo } from "@/lib/exportar";
 import { ETIQUETA_TIPO, type ProblemaB, type SolucionB } from "@/lib/transbordo";
@@ -14,6 +15,7 @@ import { Metrica, Tabla } from "./Resultados";
 import { Seccion } from "./ui";
 
 export function ResultadosTransbordo({ solucion, problema }: { solucion: SolucionB; problema: ProblemaB }) {
+  const [sel, setSel] = useState<string | null>(null);
   const sobrante = solucion.oferta_total - solucion.demanda_total;
   const falta = solucion.faltante_total ?? 0;
   const entregado = solucion.entregado_total ?? solucion.demanda_total;
@@ -66,11 +68,12 @@ export function ResultadosTransbordo({ solucion, problema }: { solucion: Solucio
         </Seccion>
       )}
 
-      <MapaRed datos={mapaTransbordo(problema, solucion)} />
+      <MapaRed datos={mapaTransbordo(problema, solucion)} seleccion={sel} onSeleccion={setSel} />
 
       <Seccion titulo="Plan de envíos" nota="Unidades por cada ruta activa y su costo.">
         <Tabla
           columnas={["Desde", "Hacia", "Unidades", "Costo/u.", "Costo"]}
+          resaltar={solucion.flujos.map((f) => sel === `n:${f.desde}` || sel === `n:${f.hasta}`)}
           filas={solucion.flujos.map((f) => [f.desde, f.hasta, numero(f.unidades), numero(f.costo_unitario), moneda(f.costo)])}
         />
       </Seccion>
@@ -78,6 +81,7 @@ export function ResultadosTransbordo({ solucion, problema }: { solucion: Solucio
       <Seccion titulo="Balance por nodo" nota="Lo que entra y sale de cada nodo. En los intermedios debe ser igual.">
         <Tabla
           columnas={["Nodo", "Tipo", "Cantidad", "Entra", "Sale"]}
+          resaltar={solucion.detalle_nodos.map((n) => sel === `n:${n.nombre}`)}
           filas={solucion.detalle_nodos.map((n) => [
             n.nombre,
             ETIQUETA_TIPO[n.tipo],
