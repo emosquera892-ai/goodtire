@@ -8,6 +8,8 @@ import { Contador } from "./Contador";
 import { Exportar } from "./Exportar";
 import { PasosUbicacion } from "./PasosUbicacion";
 import { RedLogistica } from "./RedLogistica";
+import { mapaUbicacion } from "@/lib/mapa";
+import { MapaRed } from "./MapaRed";
 import { Boton, Seccion } from "./ui";
 
 export function Metrica({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) {
@@ -168,6 +170,8 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
           <p className="text-[14px] text-ash">La comparación de combinaciones está disponible hasta 8 almacenes.</p>
         )}
       </Seccion>
+
+      <MapaRed datos={mapaUbicacion(problema, solucion)} />
 
       <Seccion titulo="Plan de envíos" nota="Unidades enviadas en cada tramo, en las mismas unidades que tu demanda.">
         <div className="grid gap-6 lg:grid-cols-2">

@@ -131,3 +131,19 @@ select option {
     transition: none !important;
   }
 }
+
+/* Mapa: líneas de envío animadas */
+@keyframes flujo-mapa {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+.flujo-mapa {
+  stroke-dasharray: 8 8;
+  animation: flujo-mapa 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flujo-mapa {
+    animation: none;
+  }
+}

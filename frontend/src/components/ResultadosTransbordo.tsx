@@ -7,6 +7,8 @@ import { moneda } from "@/lib/transporte";
 import { Contador } from "./Contador";
 import { Exportar } from "./Exportar";
 import { PasosTransporte } from "./PasosTransporte";
+import { mapaTransbordo } from "@/lib/mapa";
+import { MapaRed } from "./MapaRed";
 import { RedTransbordo } from "./RedTransbordo";
 import { Metrica, Tabla } from "./Resultados";
 import { Seccion } from "./ui";
@@ -63,6 +65,8 @@ export function ResultadosTransbordo({ solucion, problema }: { solucion: Solucio
           />
         </Seccion>
       )}
+
+      <MapaRed datos={mapaTransbordo(problema, solucion)} />
 
       <Seccion titulo="Plan de envíos" nota="Unidades por cada ruta activa y su costo.">
         <Tabla
