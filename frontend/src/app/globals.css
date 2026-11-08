@@ -181,3 +181,54 @@ select option {
 .mapa-calles.sin-etiquetas-calle .leaflet-tooltip.etiqueta-calle {
   display: none;
 }
+
+/* ---------- Modo claro (opcional: html[data-tema="claro"]) :tema-claro:inicio ---------- */
+html[data-tema="claro"] {
+  --color-obsidian: #ffffff;
+  --color-graphite: #fbfbfd;
+  --color-carbon: #f5f5f7;
+  --color-steel: #d2d2d7;
+  --color-slate: #a1a1a6;
+  --color-ash: #6e6e73;
+  --color-porcelain: #1d1d1f;
+  --color-electric-link: #0066cc;
+  --color-optical-yellow: #b38600;
+  --color-white: #000000;
+  --color-black: #ffffff;
+  color-scheme: light;
+}
+html[data-tema="claro"] select {
+  color-scheme: light;
+}
+html[data-tema="claro"] select option {
+  background-color: #ffffff;
+  color: #1d1d1f;
+}
+html[data-tema="claro"] .bg-apple-blue {
+  color: #ffffff;
+}
+html[data-tema="claro"] [class*="text-[#30d158]"] {
+  color: #1a8f3c;
+}
+html[data-tema="claro"] [class*="text-[#ff453a]"] {
+  color: #d70015;
+}
+html[data-tema="claro"] [fill="#f5f5f7"] {
+  fill: #1d1d1f;
+}
+html[data-tema="claro"] [stroke="#f5f5f7"] {
+  stroke: #1d1d1f;
+}
+html[data-tema="claro"] [fill="#333336"] {
+  fill: #d2d2d7;
+}
+html[data-tema="claro"] [stroke="#333336"] {
+  stroke: #d2d2d7;
+}
+html[data-tema="claro"] [fill="#ffd500"] {
+  fill: #b38600;
+}
+html[data-tema="claro"] [stroke="#ffd500"] {
+  stroke: #b38600;
+}
+/* :tema-claro:fin */

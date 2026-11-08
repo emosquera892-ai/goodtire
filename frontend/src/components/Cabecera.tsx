@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cerrarSesion } from "@/lib/api";
 import { abrirLogin, useUsuario } from "@/lib/sesion";
+import { fijarTema, useTema } from "@/lib/tema";
 
 const PROBLEMAS = [
   { nombre: "Ubicación de almacenes", nota: "Good Tire, Inc.", href: "/resolver" },
@@ -33,6 +34,7 @@ function Enlace({ href, activo, onClick, children }: { href: string; activo: boo
 export function Cabecera() {
   const ruta = usePathname();
   const usuario = useUsuario();
+  const tema = useTema();
   const [menu, setMenu] = useState(false);
   const [abierto, setAbierto] = useState(false);
   const caja = useRef<HTMLLIElement>(null);
@@ -138,6 +140,17 @@ export function Cabecera() {
             <Enlace href="/casos" activo={ruta === "/casos"} onClick={cerrar}>
               Mis casos
             </Enlace>
+          </li>
+
+          <li>
+            <button
+              type="button"
+              onClick={() => fijarTema(tema === "claro" ? "oscuro" : "claro")}
+              aria-label={tema === "claro" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"}
+              className={`${base} text-white/70 hover:text-white`}
+            >
+              {tema === "claro" ? "☾ Oscuro" : "☀ Claro"}
+            </button>
           </li>
 
           {usuario ? (
