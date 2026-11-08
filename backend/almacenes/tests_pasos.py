@@ -60,3 +60,47 @@ class PasosTransporteTests(APITestCase):
                 r = pasos_transporte.generar(p, metodo)["resultado"]
                 self.assertAlmostEqual(r["costo_total"], ref["costo_total"], places=6)
                 self.assertAlmostEqual(r["sin_cubrir"], ref.get("faltante_total", 0), places=6)
+
+
+class PasosUbicacionTests(APITestCase):
+    def setUp(self):
+        cache.clear()
+
+    def pedir(self, datos):
+        return self.client.post("/api/problemas/ubicacion/pasos", {"datos": datos}, format="json")
+
+    def test_good_tire_coincide_con_el_solver(self):
+        from .solver import resolver
+        from .esquema import parsear
+        from .views import EJEMPLO_GOOD_TIRE
+
+        r = self.pedir(EJEMPLO_GOOD_TIRE)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        ref = resolver(parsear(EJEMPLO_GOOD_TIRE))
+        self.assertAlmostEqual(d["resultado"]["costo_total"], ref["costo_total"], places=2)
+        self.assertEqual(sorted(d["resultado"]["almacenes"]), sorted(ref["almacenes_abiertos"]))
+        self.assertEqual(d["resultado"]["evaluadas"] + d["resultado"]["descartadas"], 2 ** 5 - 1)
+        self.assertEqual(sum(1 for e in d["evaluaciones"] if e["es_optima"]), 1)
+
+    def test_restricciones_descartan_combinaciones(self):
+        from .views import EJEMPLO_GOOD_TIRE
+
+        e = copy.deepcopy(EJEMPLO_GOOD_TIRE)
+        e["forzar_abiertos"] = ["Cleveland"]
+        d = self.pedir(e).json()
+        self.assertTrue(all("Cleveland" in x["almacenes"] for x in d["evaluaciones"]))
+        self.assertTrue(any("debe estar abierto" in x["motivo"] for x in d["descartes"]))
+
+    def test_demasiados_almacenes_y_datos_malos(self):
+        from .views import EJEMPLO_GOOD_TIRE
+
+        e = copy.deepcopy(EJEMPLO_GOOD_TIRE)
+        for i in range(4):
+            e["almacenes"].append(f"X{i}")
+            e["capacidad_almacenes"].append(50)
+            e["costo_fijo"].append(1000)
+            e["costo_planta_almacen"][0].append(1)
+            e["costo_almacen_cliente"].append([1] * len(e["clientes"]))
+        self.assertEqual(self.pedir(e).status_code, 422)
+        self.assertEqual(self.pedir({"x": 1}).status_code, 422)

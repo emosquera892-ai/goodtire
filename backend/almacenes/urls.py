@@ -17,6 +17,7 @@ urlpatterns = [
     path("problemas/<str:tipo>/ejemplo", views.ejemplo_tipo),
     path("problemas/<str:tipo>/resolver", views.ResolverTipoView.as_view()),
     path("problemas/transporte/pasos", views.PasosTransporteView.as_view()),
+    path("problemas/ubicacion/pasos", views.PasosUbicacionView.as_view()),
     path("auth/registro", RegistroView.as_view()),
     path("auth/recuperar", RecuperarView.as_view()),
     path("auth/restablecer", RestablecerView.as_view()),

@@ -6,6 +6,7 @@ import { dinero, numero, type Problema, type Solucion } from "@/lib/api";
 import { hojasUbicacion } from "@/lib/exportar";
 import { Contador } from "./Contador";
 import { Exportar } from "./Exportar";
+import { PasosUbicacion } from "./PasosUbicacion";
 import { RedLogistica } from "./RedLogistica";
 import { Boton, Seccion } from "./ui";
 
@@ -186,6 +187,10 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
           </div>
         </div>
       </Seccion>
+
+      <div className="no-imprimir">
+        <PasosUbicacion key={JSON.stringify(problema)} problema={problema} />
+      </div>
     </div>
   );
 }
