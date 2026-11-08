@@ -63,3 +63,12 @@ body {
     animation: none;
   }
 }
+
+/* Opciones de los desplegables: fondo oscuro y texto claro (si no, se ven blancas sobre blanco) */
+select {
+  color-scheme: dark;
+}
+select option {
+  background-color: #1d1d1f;
+  color: #f5f5f7;
+}
