@@ -2,11 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { ErrorApi, numero } from "@/lib/api";
-import { METODOS, pasosT, type Iteracion, type Matriz, type MetodoInicial, type PasoInicial, type PasosT } from "@/lib/pasosTransporte";
+import { METODOS, pasosB, pasosT, type Iteracion, type Matriz, type MetodoInicial, type PasoInicial, type PasosT } from "@/lib/pasosTransporte";
+import type { ProblemaB } from "@/lib/transbordo";
 import { moneda, type ProblemaT } from "@/lib/transporte";
+import { Tabla as TablaSimple } from "./Resultados";
 import { Boton, Seccion } from "./ui";
 
 type Paso =
+  | { tipo: "extra_intro" }
+  | { tipo: "extra_final" }
   | { tipo: "balanceo" }
   | { tipo: "inicial"; paso: PasoInicial }
   | { tipo: "resumen_inicial" }
@@ -140,7 +144,7 @@ function Tabla({
   );
 }
 
-export function PasosTransporte({ problema }: { problema: ProblemaT }) {
+export function PasosTransporte({ problema, tipo = "transporte" }: { problema: ProblemaT | ProblemaB; tipo?: "transporte" | "transbordo" }) {
   const [datos, setDatos] = useState<PasosT | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string[]>([]);
@@ -150,7 +154,7 @@ export function PasosTransporte({ problema }: { problema: ProblemaT }) {
     setCargando(true);
     setError([]);
     try {
-      setDatos(await pasosT(problema, m));
+      setDatos(tipo === "transbordo" ? await pasosB(problema as ProblemaB, m) : await pasosT(problema as ProblemaT, m));
       setI(0);
     } catch (e) {
       setError(e instanceof ErrorApi ? e.detalle : ["No se pudieron generar los pasos."]);
@@ -162,11 +166,13 @@ export function PasosTransporte({ problema }: { problema: ProblemaT }) {
   const pasos = useMemo<Paso[]>(() => {
     if (!datos) return [];
     return [
+      ...(datos.extra ? [{ tipo: "extra_intro" } as Paso] : []),
       { tipo: "balanceo" },
       ...datos.inicial.pasos.map((paso) => ({ tipo: "inicial" as const, paso })),
       { tipo: "resumen_inicial" },
       ...datos.optimizacion.iteraciones.map((it) => ({ tipo: "iter" as const, it })),
       { tipo: "final" },
+      ...(datos.extra ? [{ tipo: "extra_final" } as Paso] : []),
     ];
   }, [datos]);
 
@@ -175,6 +181,28 @@ export function PasosTransporte({ problema }: { problema: ProblemaT }) {
 
   function contenido(d: PasosT, p: Paso) {
     const vacio: Matriz = d.filas.map(() => d.columnas.map(() => null));
+    if (p.tipo === "extra_intro" && d.extra)
+      return {
+        titulo: d.extra.intro.titulo,
+        texto: d.extra.intro.texto,
+        tabla: (
+          <TablaSimple
+            columnas={["Nodo", "Tipo", "Oferta", "Demanda"]}
+            filas={d.extra.intro.nodos.map((n) => [n.nombre, n.tipo, numero(n.oferta), numero(n.demanda)])}
+          />
+        ),
+      };
+    if (p.tipo === "extra_final" && d.extra)
+      return {
+        titulo: d.extra.final.titulo,
+        texto: `${d.extra.final.texto} Costo total: ${moneda(d.extra.final.costo_total)}.`,
+        tabla: (
+          <TablaSimple
+            columnas={["Desde", "Hasta", "Unidades", "Costo/u.", "Costo"]}
+            filas={d.extra.final.flujos.map((f) => [f.desde, f.hasta, numero(f.unidades), numero(f.costo_unitario), moneda(f.costo)])}
+          />
+        ),
+      };
     if (p.tipo === "balanceo")
       return {
         titulo: "Paso 0 · Preparar la tabla",
@@ -205,7 +233,9 @@ export function PasosTransporte({ problema }: { problema: ProblemaT }) {
       const ult = d.inicial.pasos[d.inicial.pasos.length - 1];
       return {
         titulo: "Solución inicial lista",
-        texto: `Con ${d.metodo_nombre.toLowerCase()} el costo inicial es ${moneda(d.inicial.costo)}. Es una solución factible, pero puede no ser la mejor: ahora se mejora con el método MODI.`,
+        texto: d.extra
+          ? `Con ${d.metodo_nombre.toLowerCase()} se obtiene una solución de partida (puede usar rutas ficticias de costo M). Ahora se mejora con el método MODI hasta el óptimo.`
+          : `Con ${d.metodo_nombre.toLowerCase()} el costo inicial es ${moneda(d.inicial.costo)}. Es una solución factible, pero puede no ser la mejor: ahora se mejora con el método MODI.`,
         tabla: <Tabla d={d} asig={ult.asignacion} />,
       };
     }
@@ -238,7 +268,11 @@ export function PasosTransporte({ problema }: { problema: ProblemaT }) {
   return (
     <Seccion
       titulo="Solución paso a paso"
-      nota="Cómo se llega al óptimo a mano: primero una solución inicial y luego se mejora con el método MODI (u-v) hasta que ya no se pueda bajar el costo."
+      nota={
+        tipo === "transbordo"
+          ? "El transbordo se convierte en un problema de transporte (todos los nodos son origen y destino) y se resuelve con solución inicial + método MODI."
+          : "Cómo se llega al óptimo a mano: primero una solución inicial y luego se mejora con el método MODI (u-v) hasta que ya no se pueda bajar el costo."
+      }
     >
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-[14px] text-ash">Solución inicial con:</span>

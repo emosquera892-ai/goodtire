@@ -1,4 +1,5 @@
 import { pedir } from "./api";
+import type { ProblemaB } from "./transbordo";
 import type { ProblemaT } from "./transporte";
 
 export type MetodoInicial = "esquina_noroeste" | "costo_minimo" | "vogel";
@@ -36,7 +37,17 @@ export type Iteracion = {
   theta?: number;
   saliente?: [number, number];
 };
+export type ExtraB = {
+  intro: { titulo: string; texto: string; nodos: { nombre: string; tipo: string; oferta: number; demanda: number; colchon: number }[] };
+  final: {
+    titulo: string;
+    texto: string;
+    flujos: { desde: string; hasta: string; unidades: number; costo_unitario: number; costo: number }[];
+    costo_total: number;
+  };
+};
 export type PasosT = {
+  extra?: ExtraB;
   metodo: MetodoInicial;
   metodo_nombre: string;
   filas: string[];
@@ -57,3 +68,6 @@ export type PasosT = {
 
 export const pasosT = (datos: ProblemaT, metodo: MetodoInicial) =>
   pedir<PasosT>("/problemas/transporte/pasos", { method: "POST", body: JSON.stringify({ datos, metodo }) });
+
+export const pasosB = (datos: ProblemaB, metodo: MetodoInicial) =>
+  pedir<PasosT>("/problemas/transbordo/pasos", { method: "POST", body: JSON.stringify({ datos, metodo }) });

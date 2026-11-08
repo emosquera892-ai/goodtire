@@ -19,6 +19,7 @@ urlpatterns = [
     path("problemas/transporte/pasos", views.PasosTransporteView.as_view()),
     path("problemas/ubicacion/pasos", views.PasosUbicacionView.as_view()),
     path("problemas/asignacion/pasos", views.PasosAsignacionView.as_view()),
+    path("problemas/transbordo/pasos", views.PasosTransbordoView.as_view()),
     path("auth/registro", RegistroView.as_view()),
     path("auth/recuperar", RecuperarView.as_view()),
     path("auth/restablecer", RestablecerView.as_view()),

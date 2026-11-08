@@ -163,3 +163,19 @@ class PasosAsignacionView(APIView):
             return Response(pasos_asignacion.generar(asignacion.parsear(cuerpo.get("datos"))))
         except ErrorDatos as e:
             return Response({"detail": e.mensajes}, status=422)
+
+
+class PasosTransbordoView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "resolver"
+
+    def post(self, request):
+        from . import pasos_transbordo, transbordo
+
+        try:
+            cuerpo = request.data if isinstance(request.data, dict) else {}
+            datos = transbordo.parsear(cuerpo.get("datos"))
+            return Response(pasos_transbordo.generar(datos, cuerpo.get("metodo") or "vogel"))
+        except ErrorDatos as e:
+            return Response({"detail": e.mensajes}, status=422)

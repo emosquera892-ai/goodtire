@@ -160,3 +160,50 @@ class PasosAsignacionTests(APITestCase):
                 continue
             r = pasos_asignacion.generar(p)["resultado"]["costo_total"]
             self.assertAlmostEqual(r, ref, places=6)
+
+
+class PasosTransbordoTests(APITestCase):
+    def setUp(self):
+        cache.clear()
+
+    def pedir(self, datos, metodo="vogel"):
+        return self.client.post("/api/problemas/transbordo/pasos", {"datos": datos, "metodo": metodo}, format="json")
+
+    def test_ejemplo_los_tres_metodos_dan_el_optimo(self):
+        from . import transbordo
+
+        ref = transbordo.resolver(transbordo.parsear(transbordo.EJEMPLO))["costo_total"]
+        for metodo in pasos_transporte.METODOS:
+            r = self.pedir(transbordo.EJEMPLO, metodo)
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.assertEqual(d["resultado"]["costo_total"], ref)
+            self.assertEqual(d["extra"]["final"]["costo_total"], ref)
+            self.assertEqual(len(d["extra"]["intro"]["nodos"]), 7)
+
+    def test_errores(self):
+        self.assertEqual(self.pedir({"x": 1}).status_code, 422)
+        from . import transbordo
+
+        self.assertEqual(self.pedir(transbordo.EJEMPLO, "otro").status_code, 422)
+
+    def test_coincide_con_el_solver_en_casos_aleatorios(self):
+        from . import pasos_transbordo, transbordo
+
+        rnd = random.Random(4)
+        for _ in range(60):
+            no, ni, nd = rnd.randint(1, 2), rnd.randint(0, 2), rnd.randint(1, 2)
+            nodos = (
+                [{"nombre": f"o{i}", "tipo": "origen", "cantidad": rnd.randint(0, 40)} for i in range(no)]
+                + [{"nombre": f"i{i}", "tipo": "intermedio", "cantidad": rnd.choice([None, rnd.randint(5, 40)])} for i in range(ni)]
+                + [{"nombre": f"d{i}", "tipo": "destino", "cantidad": rnd.randint(0, 40)} for i in range(nd)]
+            )
+            n = len(nodos)
+            costos = [[rnd.randint(0, 12) if i != j and rnd.random() < 0.5 else None for j in range(n)] for i in range(n)]
+            try:
+                p = transbordo.parsear({"nodos": nodos, "costos": costos})
+                ref = transbordo.resolver(p)
+            except ErrorDatos:
+                continue
+            r = pasos_transbordo.generar(p, "vogel")["resultado"]
+            self.assertAlmostEqual(r["costo_total"], ref["costo_total"], places=6)

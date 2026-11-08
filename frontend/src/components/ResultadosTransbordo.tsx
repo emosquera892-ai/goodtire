@@ -6,6 +6,7 @@ import { ETIQUETA_TIPO, type ProblemaB, type SolucionB } from "@/lib/transbordo"
 import { moneda } from "@/lib/transporte";
 import { Contador } from "./Contador";
 import { Exportar } from "./Exportar";
+import { PasosTransporte } from "./PasosTransporte";
 import { RedTransbordo } from "./RedTransbordo";
 import { Metrica, Tabla } from "./Resultados";
 import { Seccion } from "./ui";
@@ -82,6 +83,10 @@ export function ResultadosTransbordo({ solucion, problema }: { solucion: Solucio
           ])}
         />
       </Seccion>
+
+      <div className="no-imprimir">
+        <PasosTransporte tipo="transbordo" key={JSON.stringify(problema)} problema={problema} />
+      </div>
     </div>
   );
 }
