@@ -59,10 +59,10 @@ export function Tabla({ columnas, filas, resaltar }: { columnas: string[]; filas
   return (
     <div ref={caja} className="max-h-72 overflow-auto rounded-[20px] border border-steel">
       <table className="w-full min-w-[420px] border-collapse text-[13px]">
-        <thead className="sticky top-0 bg-carbon">
+        <thead>
           <tr>
             {columnas.map((c, j) => (
-              <th key={j} scope="col" className={`p-2.5 font-medium text-ash ${j >= columnas.length - 2 ? "text-right" : "text-left"}`}>
+              <th key={j} scope="col" className={`sticky top-0 z-10 bg-carbon p-2.5 font-medium text-ash shadow-[0_1px_0_var(--color-steel)] ${j >= columnas.length - 2 ? "text-right" : "text-left"}`}>
                 {c}
               </th>
             ))}
