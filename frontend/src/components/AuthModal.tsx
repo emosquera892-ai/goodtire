@@ -68,6 +68,9 @@ export function AuthModal({ abierto, onCerrar }: { abierto: boolean; onCerrar: (
       className="m-auto w-[min(92vw,420px)] rounded-[28px] bg-carbon p-8 text-porcelain backdrop:bg-black/70 backdrop:backdrop-blur-sm"
     >
       <form onSubmit={enviar} className="space-y-5">
+        <p aria-hidden className="text-[38px] font-black uppercase leading-none tracking-[-0.01em] text-apple-blue">
+          Good Tire
+        </p>
         <h2 id="titulo-auth" className="text-[28px] font-semibold leading-none tracking-[0.196px]">
           {TITULO[modo]}
         </h2>
