@@ -29,6 +29,7 @@ import { Resultados } from "./Resultados";
 import { abrirLogin, useUsuario } from "@/lib/sesion";
 import { resumenUbicacion } from "@/lib/escenarios";
 import { Escenarios } from "./Escenarios";
+import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { Boton, Campo } from "./ui";
 
 type Resultado = { solucion: Solucion; problema: Problema };
@@ -79,7 +80,10 @@ export function Solver() {
     setIntentado(true);
     setAviso("");
     setErrorServidor([]);
-    if (hayErrores(errores)) return;
+    if (hayErrores(errores)) {
+      enfocarPrimerError();
+      return;
+    }
     setCargando(true);
     try {
       const problema = aProblema(estado);
@@ -104,6 +108,7 @@ export function Solver() {
     setErrorServidor([]);
     if (hayErrores(errores)) {
       setAviso("Corrige los campos marcados antes de guardar.");
+      enfocarPrimerError();
       return;
     }
     const nombre = nombreGuardar.trim();
@@ -201,11 +206,7 @@ export function Solver() {
           <Boton onClick={() => void calcular()} disabled={cargando} className="px-6 py-2.5">
             {cargando ? "Calculando…" : "Resolver"}
           </Boton>
-          {intentado && nCampos > 0 && (
-            <span className="text-[14px] text-[#ff453a]">
-              {nCampos === 1 ? "Hay 1 campo por corregir." : `Hay ${nCampos} campos por corregir.`}
-            </span>
-          )}
+          {intentado && nCampos > 0 && <ErroresCampos n={nCampos} />}
         </div>
         {intentado && errores.globales.length > 0 && (
           <ul role="alert" className="mt-4 space-y-1 rounded-[20px] border border-[#ff453a] p-4 text-[14px] text-porcelain">

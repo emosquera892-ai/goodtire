@@ -27,6 +27,7 @@ import { RedTransbordo } from "./RedTransbordo";
 import { ResultadosTransbordo } from "./ResultadosTransbordo";
 import { resumenTransbordo } from "@/lib/escenarios";
 import { Escenarios } from "./Escenarios";
+import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { Boton, Campo } from "./ui";
 
 type Resultado = { solucion: SolucionB; problema: ProblemaB };
@@ -79,7 +80,10 @@ export function SolverTransbordo() {
     setIntentado(true);
     setAviso("");
     setErrorServidor([]);
-    if (hayErroresB(errores)) return;
+    if (hayErroresB(errores)) {
+      enfocarPrimerError();
+      return;
+    }
     setCargando(true);
     try {
       const problema = aProblemaB(estado);
@@ -104,6 +108,7 @@ export function SolverTransbordo() {
     setErrorServidor([]);
     if (hayErroresB(errores)) {
       setAviso("Corrige los campos marcados antes de guardar.");
+      enfocarPrimerError();
       return;
     }
     const nombre = nombreGuardar.trim();
@@ -202,11 +207,7 @@ export function SolverTransbordo() {
           <Boton onClick={() => void calcular()} disabled={cargando} className="px-6 py-2.5">
             {cargando ? "Calculando…" : "Resolver"}
           </Boton>
-          {intentado && nCampos > 0 && (
-            <span className="text-[14px] text-[#ff453a]">
-              {nCampos === 1 ? "Hay 1 campo por corregir." : `Hay ${nCampos} campos por corregir.`}
-            </span>
-          )}
+          {intentado && nCampos > 0 && <ErroresCampos n={nCampos} />}
         </div>
         {faltaOferta && (
           <p className="mt-4 rounded-[20px] border border-steel p-4 text-[14px] text-porcelain">
