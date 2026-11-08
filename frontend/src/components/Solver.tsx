@@ -23,6 +23,7 @@ import {
   type Estado,
 } from "@/lib/formulario";
 import { Editor } from "./Editor";
+import { EnunciadoGoodTire } from "./EnunciadoGoodTire";
 import { RedLogistica } from "./RedLogistica";
 import { Resultados } from "./Resultados";
 import { abrirLogin, useUsuario } from "@/lib/sesion";
@@ -169,6 +170,8 @@ export function Solver() {
       <p className="mt-3 max-w-xl text-[17px] leading-[1.47] tracking-[-0.374px] text-ash">
         Edita las tablas, o parte del caso de Good Tire. El modelo decide qué almacenes abrir y cómo enviar cada llanta.
       </p>
+
+      <EnunciadoGoodTire />
 
       {casoParam && !usuario && (
         <p className="mt-6 rounded-[20px] border border-steel p-4 text-[14px] text-porcelain">
