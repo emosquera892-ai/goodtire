@@ -1,8 +1,10 @@
 "use client";
 
 import { numero } from "@/lib/api";
+import { hojasTransporte } from "@/lib/exportar";
 import { moneda, type ProblemaT, type SolucionT } from "@/lib/transporte";
 import { Contador } from "./Contador";
+import { Exportar } from "./Exportar";
 import { RedTransporte } from "./RedTransporte";
 import { Barra, Metrica, Tabla } from "./Resultados";
 import { Seccion } from "./ui";
@@ -12,7 +14,8 @@ export function ResultadosTransporte({ solucion, problema }: { solucion: Solucio
   const sobrante = solucion.oferta_total - enviadas;
   const falta = solucion.faltante_total ?? 0;
   return (
-    <div className="space-y-6">
+    <div className="imprimible space-y-6">
+      <Exportar titulo="Problema de transporte" archivo="transporte" hojas={() => hojasTransporte(problema, solucion)} />
       <div className="overflow-hidden rounded-[28px] bg-obsidian p-4 sm:p-8">
         <RedTransporte origenes={problema.origenes} destinos={problema.destinos} solucion={solucion} />
       </div>

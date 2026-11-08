@@ -3,7 +3,9 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { dinero, numero, type Problema, type Solucion } from "@/lib/api";
+import { hojasUbicacion } from "@/lib/exportar";
 import { Contador } from "./Contador";
+import { Exportar } from "./Exportar";
 import { RedLogistica } from "./RedLogistica";
 import { Boton, Seccion } from "./ui";
 
@@ -79,7 +81,8 @@ export function Resultados({ solucion, problema }: { solucion: Solucion; problem
   const dif = segundo ? segundo.costo_total - solucion.costo_total : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="imprimible space-y-6">
+      <Exportar titulo="Ubicación de almacenes" archivo="ubicacion-almacenes" hojas={() => hojasUbicacion(problema, solucion)} />
       <div className="overflow-hidden rounded-[28px] bg-obsidian p-4 sm:p-8">
         <RedLogistica problema={problema} solucion={solucion} />
       </div>

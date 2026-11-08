@@ -2,7 +2,9 @@
 
 import { numero } from "@/lib/api";
 import type { ProblemaA, SolucionA } from "@/lib/asignacion";
+import { hojasAsignacion } from "@/lib/exportar";
 import { Contador } from "./Contador";
+import { Exportar } from "./Exportar";
 import { RedTransporte } from "./RedTransporte";
 import { Metrica, Tabla } from "./Resultados";
 import { Seccion } from "./ui";
@@ -11,7 +13,8 @@ export function ResultadosAsignacion({ solucion, problema }: { solucion: Solucio
   const min = solucion.objetivo === "minimizar";
   const sin = solucion.agentes_sin_tarea.length + solucion.tareas_sin_agente.length;
   return (
-    <div className="space-y-6">
+    <div className="imprimible space-y-6">
+      <Exportar titulo="Problema de asignación" archivo="asignacion" hojas={() => hojasAsignacion(problema, solucion)} />
       <div className="overflow-hidden rounded-[28px] bg-obsidian p-4 sm:p-8">
         <RedTransporte
           origenes={problema.agentes}

@@ -72,3 +72,62 @@ select option {
   background-color: #1d1d1f;
   color: #f5f5f7;
 }
+
+/* ---------- Impresión / PDF de resultados ---------- */
+.solo-imprimir {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  /* Tema claro para papel: se redefinen los colores y todo lo demás se adapta */
+  :root {
+    --color-obsidian: #ffffff;
+    --color-graphite: #ffffff;
+    --color-carbon: #f5f5f7;
+    --color-steel: #d2d2d7;
+    --color-slate: #86868b;
+    --color-ash: #515154;
+    --color-porcelain: #1d1d1f;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+    color: #1d1d1f !important;
+  }
+  /* Solo se imprime la zona de resultados: se oculta todo lo que no la contiene */
+  body :not(.imprimible):not(.imprimible *):not(:has(.imprimible)) {
+    display: none !important;
+  }
+  .no-imprimir {
+    display: none !important;
+  }
+  .solo-imprimir {
+    display: block;
+    margin-bottom: 12px;
+  }
+  .imprimible [class*="max-h-"] {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .imprimible tr {
+    break-inside: avoid;
+  }
+  .imprimible h3 {
+    break-after: avoid;
+  }
+  .imprimible svg text {
+    fill: #1d1d1f !important;
+  }
+  .imprimible svg circle[fill="#f5f5f7"] {
+    fill: #1d1d1f !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    animation: none !important;
+    transition: none !important;
+  }
+}
