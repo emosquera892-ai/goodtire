@@ -145,7 +145,7 @@ async function renovar(sesion: Sesion): Promise<boolean> {
   }
 }
 
-const ETIQUETAS: Record<string, string> = { username: "Usuario", email: "Correo", password: "Contraseña" };
+const ETIQUETAS: Record<string, string> = { username: "Usuario", email: "Correo", password: "Contraseña", nueva: "Contraseña nueva" };
 
 async function extraerErrores(res: Response): Promise<string[]> {
   try {
@@ -218,6 +218,16 @@ export const pedirRecuperacion = (correo: string) =>
 
 export const restablecerClave = (uid: string, token: string, clave: string) =>
   pedir<{ detail: string }>("/auth/restablecer", { method: "POST", body: JSON.stringify({ uid, token, password: clave }) });
+
+export const obtenerCuenta = () => pedir<{ username: string; email: string }>("/auth/cuenta", {}, true);
+export const cambiarClave = (actual: string, nueva: string) =>
+  pedir<{ detail: string }>("/auth/cambiar-clave", { method: "POST", body: JSON.stringify({ password: actual, nueva }) }, true);
+export const cambiarCorreo = (clave: string, correo: string) =>
+  pedir<{ detail: string; email: string }>("/auth/cambiar-correo", { method: "POST", body: JSON.stringify({ password: clave, email: correo }) }, true);
+export async function eliminarCuenta(clave: string) {
+  await pedir<void>("/auth/eliminar-cuenta", { method: "POST", body: JSON.stringify({ password: clave }) }, true);
+  cerrarSesion();
+}
 
 export const listarCasos = (pagina = 1) => pedir<Pagina<CasoResumen>>(`/casos?page=${pagina}`, {}, true);
 export const obtenerCaso = (id: number) => pedir<Caso>(`/casos/${id}`, {}, true);

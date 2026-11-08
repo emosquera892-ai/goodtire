@@ -95,3 +95,79 @@ class RestablecerView(APIView):
         user.set_password(d["password"])
         user.save(update_fields=["password"])  # cambia el hash: el enlace deja de servir
         return Response({"detail": "Contraseña actualizada. Ya puedes iniciar sesión."})
+
+
+# ---------- Mi cuenta (usuario con sesión) ----------
+
+CLAVE_INCORRECTA = "La contraseña actual no es correcta."
+
+
+class _ConClave(serializers.Serializer):
+    password = serializers.CharField(max_length=128, write_only=True, trim_whitespace=False)
+
+    def validate_password(self, valor):
+        if not self.context["request"].user.check_password(valor):
+            raise serializers.ValidationError(CLAVE_INCORRECTA)
+        return valor
+
+
+class CambiarClaveSerializer(_ConClave):
+    nueva = serializers.CharField(min_length=8, max_length=128, write_only=True, trim_whitespace=False)
+
+    def validate(self, attrs):
+        try:
+            validate_password(attrs["nueva"], self.context["request"].user)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({"nueva": list(e.messages)})
+        return attrs
+
+
+class CambiarCorreoSerializer(_ConClave):
+    email = serializers.EmailField(max_length=254)
+
+    def validate_email(self, valor):
+        valor = valor.strip().lower()
+        if User.objects.filter(email__iexact=valor).exclude(pk=self.context["request"].user.pk).exists():
+            raise serializers.ValidationError("Ya existe una cuenta con ese correo")
+        return valor
+
+
+class _VistaCuenta(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "cuenta"
+
+
+class CuentaView(_VistaCuenta):
+    def get(self, request):
+        return Response({"username": request.user.get_username(), "email": request.user.email})
+
+
+class CambiarClaveView(_VistaCuenta):
+    def post(self, request):
+        ser = CambiarClaveSerializer(data=request.data, context={"request": request})
+        ser.is_valid(raise_exception=True)
+        request.user.set_password(ser.validated_data["nueva"])
+        request.user.save(update_fields=["password"])
+        return Response({"detail": "Contraseña actualizada."})
+
+
+class CambiarCorreoView(_VistaCuenta):
+    def post(self, request):
+        ser = CambiarCorreoSerializer(data=request.data, context={"request": request})
+        ser.is_valid(raise_exception=True)
+        request.user.email = ser.validated_data["email"]
+        request.user.save(update_fields=["email"])
+        return Response({"detail": "Correo actualizado.", "email": request.user.email})
+
+
+class EliminarCuentaView(_VistaCuenta):
+    def post(self, request):
+        ser = _ConClave(data=request.data, context={"request": request})
+        ser.is_valid(raise_exception=True)
+        if request.user.is_staff or request.user.is_superuser:
+            return Response(
+                {"detail": ["Las cuentas de administrador no se pueden eliminar desde aquí."]},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        request.user.delete()  # sus casos se borran en cascada
+        return Response(status=status.HTTP_204_NO_CONTENT)

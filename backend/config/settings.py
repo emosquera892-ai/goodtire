@@ -108,6 +108,7 @@ REST_FRAMEWORK = {
         "registro": "10/hour",
         "recuperar": "5/hour",
         "restablecer": "20/hour",
+        "cuenta": "30/hour",
     },
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
 }

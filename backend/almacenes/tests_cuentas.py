@@ -148,3 +148,66 @@ class RestablecerTests(CuentasBase):
 
     def test_faltan_campos(self):
         self.assertEqual(self.client.post("/api/auth/restablecer", {"uid": "x"}, format="json").status_code, 400)
+
+
+class MiCuentaTests(CuentasBase):
+    def entrar(self, usuario="ana"):
+        self.crear(usuario, f"{usuario}@ejemplo.com")
+        t = self.client.post("/api/auth/token", {"username": usuario, "password": CLAVE}, format="json").json()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {t['access']}")
+
+    def test_requiere_sesion(self):
+        for ruta in ["cuenta", "cambiar-clave", "cambiar-correo", "eliminar-cuenta"]:
+            r = self.client.get(f"/api/auth/{ruta}") if ruta == "cuenta" else self.client.post(f"/api/auth/{ruta}", {}, format="json")
+            self.assertEqual(r.status_code, 401, ruta)
+
+    def test_ver_cuenta(self):
+        self.entrar()
+        self.assertEqual(self.client.get("/api/auth/cuenta").json(), {"username": "ana", "email": "ana@ejemplo.com"})
+
+    def test_cambiar_clave(self):
+        self.entrar()
+        malo = self.client.post("/api/auth/cambiar-clave", {"password": "otra-mala-123", "nueva": "Nueva-clave-456"}, format="json")
+        self.assertEqual(malo.status_code, 400)
+        debil = self.client.post("/api/auth/cambiar-clave", {"password": CLAVE, "nueva": "12345678"}, format="json")
+        self.assertEqual(debil.status_code, 400)
+        ok = self.client.post("/api/auth/cambiar-clave", {"password": CLAVE, "nueva": "Nueva-clave-456"}, format="json")
+        self.assertEqual(ok.status_code, 200)
+        self.client.credentials()
+        viejo = self.client.post("/api/auth/token", {"username": "ana", "password": CLAVE}, format="json")
+        nuevo = self.client.post("/api/auth/token", {"username": "ana", "password": "Nueva-clave-456"}, format="json")
+        self.assertEqual((viejo.status_code, nuevo.status_code), (401, 200))
+
+    def test_cambiar_correo(self):
+        self.entrar()
+        self.crear("beto", "beto@ejemplo.com")
+        malo = self.client.post("/api/auth/cambiar-correo", {"password": "x" * 9, "email": "nuevo@ejemplo.com"}, format="json")
+        self.assertEqual(malo.status_code, 400)
+        repetido = self.client.post("/api/auth/cambiar-correo", {"password": CLAVE, "email": "BETO@ejemplo.com"}, format="json")
+        self.assertEqual(repetido.status_code, 400)
+        ok = self.client.post("/api/auth/cambiar-correo", {"password": CLAVE, "email": "Nuevo@Ejemplo.com"}, format="json")
+        self.assertEqual(ok.status_code, 200)
+        self.assertEqual(User.objects.get(username="ana").email, "nuevo@ejemplo.com")
+        propio = self.client.post("/api/auth/cambiar-correo", {"password": CLAVE, "email": "nuevo@ejemplo.com"}, format="json")
+        self.assertEqual(propio.status_code, 200)
+
+    def test_eliminar_cuenta_borra_sus_casos(self):
+        from .models import Caso
+
+        self.entrar()
+        u = User.objects.get(username="ana")
+        Caso.objects.create(usuario=u, nombre="c", datos={})
+        malo = self.client.post("/api/auth/eliminar-cuenta", {"password": "otra-mala-123"}, format="json")
+        self.assertEqual(malo.status_code, 400)
+        self.assertTrue(User.objects.filter(username="ana").exists())
+        ok = self.client.post("/api/auth/eliminar-cuenta", {"password": CLAVE}, format="json")
+        self.assertEqual(ok.status_code, 204)
+        self.assertFalse(User.objects.filter(username="ana").exists())
+        self.assertEqual(Caso.objects.count(), 0)
+
+    def test_admin_no_se_elimina(self):
+        self.entrar()
+        User.objects.filter(username="ana").update(is_staff=True)
+        r = self.client.post("/api/auth/eliminar-cuenta", {"password": CLAVE}, format="json")
+        self.assertEqual(r.status_code, 403)
+        self.assertTrue(User.objects.filter(username="ana").exists())

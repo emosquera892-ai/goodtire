@@ -155,7 +155,15 @@ export function Cabecera() {
 
           {usuario ? (
             <li className="flex items-center gap-1 md:ml-3">
-              <span className="max-w-[170px] truncate px-3 text-[12px] text-ash">{usuario}</span>
+              <Link
+                href="/cuenta"
+                onClick={cerrar}
+                aria-label="Mi cuenta"
+                title="Mi cuenta"
+                className="max-w-[170px] truncate rounded-full px-3 py-1.5 text-[12px] text-ash transition hover:text-porcelain focus-visible:outline-2 focus-visible:outline-apple-blue"
+              >
+                {usuario}
+              </Link>
               <button
                 type="button"
                 onClick={() => {
