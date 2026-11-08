@@ -147,3 +147,15 @@ select option {
     animation: none;
   }
 }
+
+/* sin-tarjetas:inicio — Prueba: secciones sin cuadro. Para volver al diseño anterior, borra este bloque (o ejecuta aplicar_sin_tarjetas.py --quitar). */
+#resolver .bg-carbon.rounded-\[28px\] {
+  background-color: transparent;
+  border-radius: 0;
+  padding-inline: 0;
+  border-top: 1px solid var(--color-steel);
+}
+#resolver :is(th, td, thead, tr).bg-carbon {
+  background-color: var(--color-obsidian);
+}
+/* sin-tarjetas:fin */
