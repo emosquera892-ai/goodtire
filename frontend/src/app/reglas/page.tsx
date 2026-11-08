@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ReglasAsignacion } from "@/components/EditorAsignacion";
+import { ReglasTransbordo } from "@/components/EditorTransbordo";
 import { ReglasTransporte } from "@/components/EditorTransporte";
 import { Reglas } from "@/components/Editor";
 
@@ -14,6 +15,7 @@ export default function Page() {
       <h1 className="sr-only">Qué puedes introducir</h1>
       <Reglas />
       <ReglasTransporte />
+      <ReglasTransbordo />
       <ReglasAsignacion />
       <div className="flex flex-wrap gap-3">
         <Link
@@ -24,6 +26,9 @@ export default function Page() {
         </Link>
         <Link href="/resolver/transporte" className={enlace}>
           Resolver transporte
+        </Link>
+        <Link href="/resolver/transbordo" className={enlace}>
+          Resolver transbordo
         </Link>
         <Link href="/resolver/asignacion" className={enlace}>
           Resolver asignación

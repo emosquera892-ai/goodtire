@@ -63,6 +63,7 @@ export function Matriz({
   err,
   onCelda,
   onPegar,
+  bloqueada,
 }: {
   filas: string[];
   columnas: string[];
@@ -71,6 +72,7 @@ export function Matriz({
   err: (clave: string) => string | undefined;
   onCelda: (i: number, j: number, v: string) => void;
   onPegar: (i: number, j: number, texto: string) => void;
+  bloqueada?: (i: number, j: number) => boolean;
 }) {
   return (
     <div className="overflow-x-auto rounded-[20px] border border-steel">
@@ -99,7 +101,8 @@ export function Matriz({
                 return (
                   <td key={j} className="p-1">
                     <input
-                      value={v}
+                      value={bloqueada?.(i, j) ? "" : v}
+                      disabled={bloqueada?.(i, j)}
                       inputMode="decimal"
                       aria-label={`${f || i + 1} a ${columnas[j] || j + 1}`}
                       aria-invalid={!!e}
@@ -112,7 +115,7 @@ export function Matriz({
                           onPegar(i, j, t);
                         }
                       }}
-                      className={`${claseCampo(!!e)} !rounded-xl !px-2 text-center`}
+                      className={`${claseCampo(!!e)} !rounded-xl !px-2 text-center disabled:opacity-30`}
                     />
                   </td>
                 );
