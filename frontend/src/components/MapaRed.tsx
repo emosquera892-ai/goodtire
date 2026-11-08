@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { numero } from "@/lib/api";
-import { ubicarCiudad } from "@/lib/ciudades";
+import { ubicarNombres, type TablaCiudades } from "@/lib/ciudades";
+import { trazo, type Caja, type GeoMundo } from "@/lib/geo";
 import type { DatosMapa, NodoMapa, Rol } from "@/lib/mapa";
 import { Boton, Seccion } from "./ui";
 
-type Geo = { FRONTERAS: string; CONTORNO: string };
+type Base = { geo: GeoMundo; tabla: TablaCiudades };
 type Punto = NodoMapa & { x: number; y: number; bx: number; by: number };
 
 const COLOR: Record<Rol, string> = {
@@ -36,7 +37,7 @@ export function MapaRed({
   seleccion?: string | null;
   onSeleccion?: (id: string | null) => void;
 }) {
-  const [geo, setGeo] = useState<Geo | null>(null);
+  const [base, setBase] = useState<Base | null>(null);
   const [activo, setActivo] = useState<string | null>(null);
   const [capa1, setCapa1] = useState(true);
   const [capa2, setCapa2] = useState(true);
@@ -44,8 +45,8 @@ export function MapaRed({
 
   useEffect(() => {
     let vivo = true;
-    void import("@/lib/mapaFronteras").then((m) => {
-      if (vivo) setGeo({ FRONTERAS: m.FRONTERAS, CONTORNO: m.CONTORNO });
+    void Promise.all([import("@/lib/mundoGeo"), import("@/lib/mundoCiudades"), import("@/lib/geo")]).then(([g, c, lib]) => {
+      if (vivo) setBase({ geo: lib.cargarGeo(g.GEO_JSON), tabla: JSON.parse(c.CIUDADES_JSON) as TablaCiudades });
     });
     return () => {
       vivo = false;
@@ -53,7 +54,9 @@ export function MapaRed({
   }, []);
 
   const m = useMemo(() => {
-    const ubicados = datos.nodos.map((n) => ({ n, xy: ubicarCiudad(n.nombre) }));
+    if (!base) return null;
+    const pos = ubicarNombres(datos.nodos.map((n) => n.nombre), base.tabla);
+    const ubicados = datos.nodos.map((n, i) => ({ n, xy: pos[i] }));
     const con = ubicados.filter((u) => u.xy);
     const sin = ubicados.filter((u) => !u.xy).map((u) => u.n.nombre);
     const distintos = new Set(con.map((u) => `${u.xy![0]},${u.xy![1]}`));
@@ -62,8 +65,8 @@ export function MapaRed({
     const ys = con.map((u) => u.xy![1]);
     const bw = Math.max(...xs) - Math.min(...xs);
     const bh = Math.max(...ys) - Math.min(...ys);
-    let w = Math.max(bw * 1.45 + 60, 200);
-    let h = Math.max(bh * 1.45 + 50, 125);
+    let w = Math.min(Math.max(bw * 1.6 + 1.2, 3.2), 360);
+    let h = Math.max(bh * 1.6 + 0.8, 2);
     if (w / h > ASPECTO) h = w / ASPECTO;
     else w = h * ASPECTO;
     const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
@@ -108,7 +111,6 @@ export function MapaRed({
       if (!movido) break;
     }
     // etiquetas: debajo, encima, a la derecha o a la izquierda, evitando solaparse
-    type Caja = { x0: number; y0: number; x1: number; y1: number };
     const choca = (a: Caja, b: Caja) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
     const ocupadas: Caja[] = puntos.map((p) => ({ x0: p.x - 10 * u, y0: p.y - 10 * u, x1: p.x + 10 * u, y1: p.y + 10 * u }));
     const orden = [...puntos].sort((p, q) => Number(q.rol === "planta" || q.rol === "origen") - Number(p.rol === "planta" || p.rol === "origen") || Number(q.rol === "almacen") - Number(p.rol === "almacen"));
@@ -127,8 +129,15 @@ export function MapaRed({
       ocupadas.push(elegido.caja);
       etiquetas.push({ x: elegido.x, y: elegido.y, texto: p.nombre, ancla: elegido.ancla });
     }
-    return { puntos, etiquetas, sin, vista: `${cx - w / 2} ${cy - h / 2} ${w} ${h}`, u };
-  }, [datos]);
+    const caja: Caja = { x0: cx - w / 2, y0: cy - h / 2, x1: cx + w / 2, y1: cy + h / 2 };
+    return { puntos, etiquetas, sin, vista: `${caja.x0} ${caja.y0} ${w} ${h}`, u, caja };
+  }, [datos, base]);
+
+  const rutas = useMemo(() => {
+    if (!m || !base) return null;
+    const tol = m.u * 0.6;
+    return { paises: trazo(base.geo.paises, m.caja, true, tol), estados: trazo(base.geo.estados, m.caja, false, tol), lagos: trazo(base.geo.lagos, m.caja, true, tol) };
+  }, [m, base]);
 
   if (!m) return null;
   const { puntos, etiquetas, sin, vista, u } = m;
@@ -206,11 +215,12 @@ export function MapaRed({
       </div>
 
       <div className="mt-4 overflow-hidden rounded-[20px] bg-obsidian">
-        <svg viewBox={vista} role="img" aria-label="Mapa de EE. UU. con las ciudades y los envíos del plan" className="block h-auto w-full" onClick={() => onSeleccion?.(null)}>
-          {geo && (
+        <svg viewBox={vista} role="img" aria-label="Mapa con las ciudades y los envíos del plan" className="block h-auto w-full" onClick={() => onSeleccion?.(null)}>
+          {rutas && (
             <>
-              <path d={geo.CONTORNO} fill="var(--color-carbon)" stroke="var(--color-slate)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
-              <path d={geo.FRONTERAS} fill="none" stroke="var(--color-steel)" strokeWidth={0.8} vectorEffect="non-scaling-stroke" />
+              <path d={rutas.paises} fill="var(--color-carbon)" fillRule="evenodd" stroke="var(--color-slate)" strokeWidth={0.9} vectorEffect="non-scaling-stroke" />
+              <path d={rutas.estados} fill="none" stroke="var(--color-steel)" strokeWidth={0.7} vectorEffect="non-scaling-stroke" />
+              <path d={rutas.lagos} fill="var(--color-obsidian)" fillRule="evenodd" stroke="var(--color-slate)" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
             </>
           )}
           {flujos.map((f, i) => {
@@ -281,9 +291,10 @@ export function MapaRed({
           </li>
         ))}
       </ul>
+      <p className="mt-3 text-[12px] text-ash">Mapa: Natural Earth y us-atlas (dominio público) · ciudades: GeoNames (CC BY 4.0)</p>
       {sin.length > 0 && (
         <p className="mt-3 text-[13px] text-ash">
-          No se pudieron ubicar en el mapa: {sin.join(", ")}. El mapa reconoce ciudades principales de EE. UU. por su nombre (en español o inglés).
+          No se pudieron ubicar en el mapa: {sin.join(", ")}. El mapa reconoce por su nombre (en español o inglés) las ciudades de más de 100 000 habitantes y las capitales de todo el mundo.
         </p>
       )}
     </Seccion>
