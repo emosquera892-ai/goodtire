@@ -24,6 +24,8 @@ import {
 import { EditorAsignacion } from "./EditorAsignacion";
 import { RedTransporte } from "./RedTransporte";
 import { ResultadosAsignacion } from "./ResultadosAsignacion";
+import { resumenAsignacion } from "@/lib/escenarios";
+import { Escenarios } from "./Escenarios";
 import { Boton, Campo } from "./ui";
 
 type Resultado = { solucion: SolucionA; problema: ProblemaA };
@@ -240,6 +242,8 @@ export function SolverAsignacion() {
           </div>
         )}
       </div>
+
+      <Escenarios actual={resultado ? resumenAsignacion(resultado.solucion) : null} />
 
       <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
         <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Guardar caso</h3>

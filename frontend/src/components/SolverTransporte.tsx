@@ -25,6 +25,8 @@ import {
 import { EditorTransporte } from "./EditorTransporte";
 import { RedTransporte } from "./RedTransporte";
 import { ResultadosTransporte } from "./ResultadosTransporte";
+import { resumenTransporte } from "@/lib/escenarios";
+import { Escenarios } from "./Escenarios";
 import { Boton, Campo } from "./ui";
 
 type Resultado = { solucion: SolucionT; problema: ProblemaT };
@@ -249,6 +251,8 @@ export function SolverTransporte() {
           </div>
         )}
       </div>
+
+      <Escenarios actual={resultado ? resumenTransporte(resultado.solucion) : null} />
 
       <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
         <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Guardar caso</h3>

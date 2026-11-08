@@ -27,6 +27,8 @@ import { EnunciadoGoodTire } from "./EnunciadoGoodTire";
 import { RedLogistica } from "./RedLogistica";
 import { Resultados } from "./Resultados";
 import { abrirLogin, useUsuario } from "@/lib/sesion";
+import { resumenUbicacion } from "@/lib/escenarios";
+import { Escenarios } from "./Escenarios";
 import { Boton, Campo } from "./ui";
 
 type Resultado = { solucion: Solucion; problema: Problema };
@@ -241,6 +243,8 @@ export function Solver() {
           </div>
         )}
       </div>
+
+      <Escenarios actual={resultado ? resumenUbicacion(resultado.solucion) : null} />
 
       <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
         <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Guardar caso</h3>

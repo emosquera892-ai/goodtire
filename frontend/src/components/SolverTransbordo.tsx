@@ -25,6 +25,8 @@ import {
 import { EditorTransbordo } from "./EditorTransbordo";
 import { RedTransbordo } from "./RedTransbordo";
 import { ResultadosTransbordo } from "./ResultadosTransbordo";
+import { resumenTransbordo } from "@/lib/escenarios";
+import { Escenarios } from "./Escenarios";
 import { Boton, Campo } from "./ui";
 
 type Resultado = { solucion: SolucionB; problema: ProblemaB };
@@ -248,6 +250,8 @@ export function SolverTransbordo() {
           </div>
         )}
       </div>
+
+      <Escenarios actual={resultado ? resumenTransbordo(resultado.solucion) : null} />
 
       <div className="mt-6 rounded-[28px] bg-carbon p-5 sm:p-8">
         <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Guardar caso</h3>
