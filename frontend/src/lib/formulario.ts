@@ -155,15 +155,23 @@ export function validar(e: Estado): Errores {
       const disponible = e.almacenes.reduce((s, a, i) => (a.modo === "cerrado" ? s : s + capA[i]), 0);
       if (disponible < total) {
         globales.push(
-          `La capacidad de los almacenes disponibles (${fmt(disponible)}) es menor que la demanda total (${fmt(total)}).`,
+          `La capacidad de los almacenes disponibles (${fmt(disponible)}) es menor que la demanda total (${fmt(total)}). Sube alguna capacidad de almacén (campos en rojo) o reduce la demanda de los clientes.`,
         );
+        e.almacenes.forEach((a, i) => {
+          if (a.modo !== "cerrado") celdas[`a.${i}.cap`] ??= "Sube esta capacidad o baja la demanda";
+        });
       }
     }
     const finitas = capP.filter((c): c is number => c !== null && c !== undefined);
     if (capP.every((c) => c !== undefined) && finitas.length === capP.length) {
       const sumaPlantas = finitas.reduce((s, x) => s + x, 0);
       if (sumaPlantas < total) {
-        globales.push(`La capacidad total de las plantas (${fmt(sumaPlantas)}) es menor que la demanda total (${fmt(total)}).`);
+        globales.push(
+          `La capacidad total de las plantas (${fmt(sumaPlantas)}) es menor que la demanda total (${fmt(total)}). Sube la capacidad de alguna planta (campos en rojo) o reduce la demanda.`,
+        );
+        e.plantas.forEach((_, i) => {
+          celdas[`p.${i}.cap`] ??= "Sube esta capacidad o baja la demanda";
+        });
       }
     }
   }
@@ -171,10 +179,14 @@ export function validar(e: Estado): Errores {
   if (maxV !== undefined) {
     if (maxV > W) celdas.max = `No puede superar el número de almacenes (${W})`;
     else if (minV !== undefined && minV > maxV) celdas.min = "El mínimo no puede superar al máximo";
-    if (abiertos > maxV) globales.push(`Marcaste ${abiertos} almacenes como «Abierto», pero el máximo es ${maxV}.`);
+    if (abiertos > maxV) {
+      globales.push(`Marcaste ${abiertos} almacenes como «Abierto», pero el máximo es ${maxV}. Sube el máximo o desmarca almacenes «Abierto».`);
+      celdas.max ??= "Súbelo o desmarca almacenes «Abierto»";
+    }
   }
   if (minV !== undefined && minV > W - cerrados) {
-    globales.push(`El mínimo (${minV}) supera los almacenes disponibles (${W - cerrados}).`);
+    globales.push(`El mínimo (${minV}) supera los almacenes disponibles (${W - cerrados}). Baja el mínimo o reabre almacenes «Cerrado».`);
+    celdas.min ??= "Bájalo o reabre almacenes «Cerrado»";
   }
 
   return { celdas, globales };

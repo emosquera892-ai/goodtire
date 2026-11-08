@@ -144,7 +144,12 @@ export function validarT(e: EstadoT): ErroresT {
   if (oferta.every((x) => x !== undefined) && demanda.every((x) => x !== undefined)) {
     e.destinos.forEach((d, j) => {
       if ((demanda[j] as number) > 0 && e.costos.every((f) => f[j].trim() === "")) {
-        globales.push(`Ningún origen puede abastecer a «${d.nombre.trim() || `destino ${j + 1}`}»: todas sus rutas están vacías.`);
+        globales.push(
+          `Ningún origen puede abastecer a «${d.nombre.trim() || `destino ${j + 1}`}»: todas sus rutas están vacías. Pon un costo en al menos una (campos en rojo).`,
+        );
+        e.costos.forEach((_, i) => {
+          celdas[`c.${i}.${j}`] ??= "Pon un costo en al menos una de estas rutas";
+        });
       }
     });
   }

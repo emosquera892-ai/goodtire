@@ -146,7 +146,12 @@ export function validarB(e: EstadoB): ErroresB {
     e.nodos.forEach((n, j) => {
       if (n.tipo !== "destino" || !((cant[j] ?? 0) > 0)) return;
       const llega = e.costos.some((f, i) => i !== j && f[j].trim() !== "");
-      if (!llega) globales.push(`Ninguna ruta llega a «${n.nombre.trim() || `nodo ${j + 1}`}»: toda su columna está vacía.`);
+      if (!llega) {
+        globales.push(`Ninguna ruta llega a «${n.nombre.trim() || `nodo ${j + 1}`}»: toda su columna está vacía. Pon un costo en al menos una (campos en rojo).`);
+        e.costos.forEach((_, i) => {
+          if (i !== j) celdas[`c.${i}.${j}`] ??= "Pon un costo en al menos una de estas rutas";
+        });
+      }
     });
   }
   return { celdas, globales };

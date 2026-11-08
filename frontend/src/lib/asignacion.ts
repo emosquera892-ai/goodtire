@@ -128,12 +128,22 @@ export function validarA(e: EstadoA): ErroresA {
   const vacio = (t: string) => t.trim() === "";
   if (A <= T) {
     e.costos.forEach((f, i) => {
-      if (f.every(vacio)) globales.push(`«${e.agentes[i].trim() || `agente ${i + 1}`}» no tiene ninguna tarea permitida: toda su fila está vacía.`);
+      if (f.every(vacio)) {
+        globales.push(`«${e.agentes[i].trim() || `agente ${i + 1}`}» no tiene ninguna tarea permitida: toda su fila está vacía. Pon un valor en al menos una (campos en rojo).`);
+        f.forEach((_, j) => {
+          celdas[`c.${i}.${j}`] ??= "Pon un valor en al menos una de estas casillas";
+        });
+      }
     });
   }
   if (T <= A) {
     e.tareas.forEach((n, j) => {
-      if (e.costos.every((f) => vacio(f[j]))) globales.push(`«${n.trim() || `tarea ${j + 1}`}» no puede ser hecha por nadie: toda su columna está vacía.`);
+      if (e.costos.every((f) => vacio(f[j]))) {
+        globales.push(`«${n.trim() || `tarea ${j + 1}`}» no puede ser hecha por nadie: toda su columna está vacía. Pon un valor en al menos una (campos en rojo).`);
+        e.costos.forEach((_, i) => {
+          celdas[`c.${i}.${j}`] ??= "Pon un valor en al menos una de estas casillas";
+        });
+      }
     });
   }
   return { celdas, globales };
