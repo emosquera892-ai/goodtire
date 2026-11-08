@@ -32,14 +32,16 @@ const variantes: Record<Variante, string> = {
 export function Boton({
   variante = "primario",
   className = "",
+  activo,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: Variante }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: Variante; activo?: boolean }) {
   const forma = variante === "enlace" ? "px-1 py-1" : "rounded-full px-4 py-2";
   return (
     <button
       type="button"
+      aria-pressed={activo}
       {...props}
-      className={`${forma} text-[14px] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-apple-blue disabled:cursor-not-allowed disabled:opacity-50 ${variantes[variante]} ${className}`}
+      className={`${forma} text-[14px] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-apple-blue disabled:cursor-not-allowed disabled:opacity-50 ${activo ? "border border-apple-blue bg-apple-blue/45 font-medium text-white" : variantes[variante]} ${className}`}
     />
   );
 }

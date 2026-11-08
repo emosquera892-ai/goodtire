@@ -37,6 +37,7 @@ export function Solver() {
   const casoParam = useSearchParams().get("caso");
   const cargadoRef = useRef<string | null>(null);
   const [estado, setEstado] = useState<Estado>(() => ejemploGoodTire());
+  const [plantilla, setPlantilla] = useState<"ejemplo" | "vacio" | null>("ejemplo");
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [casoActual, setCasoActual] = useState<{ id: number; nombre: string } | null>(null);
   const [nombreGuardar, setNombreGuardar] = useState("Caso Good Tire");
@@ -58,8 +59,9 @@ export function Solver() {
     setAviso("");
   }
 
-  function cargar(nuevo: Estado, nombre: string) {
+  function cargar(nuevo: Estado, nombre: string, p: "ejemplo" | "vacio") {
     setEstado(nuevo);
+    setPlantilla(p);
     setResultado(null);
     setCasoActual(null);
     setNombreGuardar(nombre);
@@ -126,6 +128,7 @@ export function Solver() {
 
   const abrir = useCallback((c: Caso) => {
     setEstado(desdeProblema(c.datos));
+    setPlantilla(null);
     setResultado(c.resultado ? { solucion: c.resultado, problema: c.datos } : null);
     setCasoActual({ id: c.id, nombre: c.nombre });
     setNombreGuardar(c.nombre);
@@ -175,10 +178,10 @@ export function Solver() {
       )}
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        <Boton variante="secundario" onClick={() => cargar(ejemploGoodTire(), "Caso Good Tire")}>
+        <Boton variante="secundario" activo={plantilla === "ejemplo"} onClick={() => cargar(ejemploGoodTire(), "Caso Good Tire", "ejemplo")}>
           Cargar caso Good Tire
         </Boton>
-        <Boton variante="secundario" onClick={() => cargar(casoVacio(), "Caso nuevo")}>
+        <Boton variante="secundario" activo={plantilla === "vacio"} onClick={() => cargar(casoVacio(), "Caso nuevo", "vacio")}>
           Empezar un caso vacío
         </Boton>
         {caso && <span className="text-[13px] text-ash">Editando: <strong className="text-porcelain">{caso.nombre}</strong></span>}

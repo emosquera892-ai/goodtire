@@ -36,6 +36,7 @@ export function SolverAsignacion() {
   const cargadoRef = useRef<string | null>(null);
   const refResultado = useRef<HTMLDivElement>(null);
   const [estado, setEstado] = useState<EstadoA>(() => ejemploMachineco());
+  const [plantilla, setPlantilla] = useState<"ejemplo" | "vacio" | null>("ejemplo");
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [casoActual, setCasoActual] = useState<{ id: number; nombre: string } | null>(null);
   const [nombreGuardar, setNombreGuardar] = useState("Caso Machineco");
@@ -56,8 +57,9 @@ export function SolverAsignacion() {
     setAviso("");
   }
 
-  function cargar(nuevo: EstadoA, nombre: string) {
+  function cargar(nuevo: EstadoA, nombre: string, p: "ejemplo" | "vacio") {
     setEstado(nuevo);
+    setPlantilla(p);
     setResultado(null);
     setCasoActual(null);
     setNombreGuardar(nombre);
@@ -122,6 +124,7 @@ export function SolverAsignacion() {
 
   const abrir = useCallback((c: CasoA) => {
     setEstado(desdeProblemaA(c.datos));
+    setPlantilla(null);
     setResultado(c.resultado ? { solucion: c.resultado, problema: c.datos } : null);
     setCasoActual({ id: c.id, nombre: c.nombre });
     setNombreGuardar(c.nombre);
@@ -173,10 +176,10 @@ export function SolverAsignacion() {
       )}
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        <Boton variante="secundario" onClick={() => cargar(ejemploMachineco(), "Caso Machineco")}>
+        <Boton variante="secundario" activo={plantilla === "ejemplo"} onClick={() => cargar(ejemploMachineco(), "Caso Machineco", "ejemplo")}>
           Cargar ejemplo Machineco
         </Boton>
-        <Boton variante="secundario" onClick={() => cargar(casoVacioA(), "Caso nuevo")}>
+        <Boton variante="secundario" activo={plantilla === "vacio"} onClick={() => cargar(casoVacioA(), "Caso nuevo", "vacio")}>
           Empezar un caso vacío
         </Boton>
         {caso && (

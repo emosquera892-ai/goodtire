@@ -36,6 +36,7 @@ export function SolverTransporte() {
   const cargadoRef = useRef<string | null>(null);
   const refResultado = useRef<HTMLDivElement>(null);
   const [estado, setEstado] = useState<EstadoT>(() => ejemploPowerco());
+  const [plantilla, setPlantilla] = useState<"ejemplo" | "vacio" | null>("ejemplo");
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [casoActual, setCasoActual] = useState<{ id: number; nombre: string } | null>(null);
   const [nombreGuardar, setNombreGuardar] = useState("Caso Powerco");
@@ -56,8 +57,9 @@ export function SolverTransporte() {
     setAviso("");
   }
 
-  function cargar(nuevo: EstadoT, nombre: string) {
+  function cargar(nuevo: EstadoT, nombre: string, p: "ejemplo" | "vacio") {
     setEstado(nuevo);
+    setPlantilla(p);
     setResultado(null);
     setCasoActual(null);
     setNombreGuardar(nombre);
@@ -122,6 +124,7 @@ export function SolverTransporte() {
 
   const abrir = useCallback((c: CasoT) => {
     setEstado(desdeProblemaT(c.datos));
+    setPlantilla(null);
     setResultado(c.resultado ? { solucion: c.resultado, problema: c.datos } : null);
     setCasoActual({ id: c.id, nombre: c.nombre });
     setNombreGuardar(c.nombre);
@@ -173,10 +176,10 @@ export function SolverTransporte() {
       )}
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        <Boton variante="secundario" onClick={() => cargar(ejemploPowerco(), "Caso Powerco")}>
+        <Boton variante="secundario" activo={plantilla === "ejemplo"} onClick={() => cargar(ejemploPowerco(), "Caso Powerco", "ejemplo")}>
           Cargar ejemplo Powerco
         </Boton>
-        <Boton variante="secundario" onClick={() => cargar(casoVacioT(), "Caso nuevo")}>
+        <Boton variante="secundario" activo={plantilla === "vacio"} onClick={() => cargar(casoVacioT(), "Caso nuevo", "vacio")}>
           Empezar un caso vacío
         </Boton>
         {caso && (
