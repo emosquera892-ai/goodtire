@@ -333,7 +333,7 @@ export function MapaRed({
       </ul>
       <p className="mt-3 text-[12px] text-ash">
         {modo === "calles"
-          ? "Mapa de calles: © colaboradores de OpenStreetMap · estilo © CARTO · ciudades: GeoNames (CC BY 4.0)"
+          ? "Mapa de calles: © colaboradores de OpenStreetMap · ciudades: GeoNames (CC BY 4.0)"
           : "Mapa: Natural Earth y us-atlas (dominio público) · ciudades: GeoNames (CC BY 4.0)"}
       </p>
       {sin.length > 0 && (

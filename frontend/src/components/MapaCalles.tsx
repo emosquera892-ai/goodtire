@@ -15,8 +15,9 @@ const COLOR: Record<Rol, string> = {
   cliente: "#2997ff",
   destino: "#2997ff",
 };
-const TESELAS = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-const ATRIBUCION = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> · © <a href="https://carto.com/attributions" target="_blank" rel="noreferrer">CARTO</a>';
+// Teselas de OpenStreetMap (sin clave). El modo oscuro se logra con un filtro CSS (ver .mapa-calles en globals.css).
+const TESELAS = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const ATRIBUCION = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">Colaboradores de OpenStreetMap</a>';
 
 type Props = {
   puntos: PuntoCalle[];
@@ -80,7 +81,7 @@ export function MapaCalles({ puntos, flujos, capa1, capa2, cerrados, foco, selec
         const L = (m.default ?? m) as typeof Leaflet;
         lib.current = L;
         const mp = L.map(caja.current, { scrollWheelZoom: false, dragging: !L.Browser.mobile, minZoom: 2, worldCopyJump: true });
-        L.tileLayer(TESELAS, { subdomains: "abcd", maxZoom: 19, attribution: ATRIBUCION }).addTo(mp);
+        L.tileLayer(TESELAS, { maxZoom: 19, attribution: ATRIBUCION }).addTo(mp);
         mp.setView([20, 0], 2);
         // la rueda hace zoom solo después de hacer clic en el mapa (así no estorba al desplazar la página)
         mp.on("click", () => {

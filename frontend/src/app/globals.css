@@ -175,6 +175,10 @@ select option {
   padding: 0;
   text-shadow: 0 0 3px #000, 0 0 3px #000, 0 0 6px #000;
 }
+/* Las teselas de OpenStreetMap son claras: se invierten para que combinen con el tema oscuro */
+.mapa-calles .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.7);
+}
 .leaflet-tooltip-bottom.etiqueta-calle::before {
   display: none;
 }
