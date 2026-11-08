@@ -11,6 +11,7 @@ const PROBLEMAS = [
   { nombre: "Transporte", nota: "Origen → destino", href: "/resolver/transporte" },
   { nombre: "Transbordo", nota: "Con intermediarios", href: "/resolver/transbordo" },
   { nombre: "Asignación", nota: "Agente → tarea", href: "/resolver/asignacion" },
+  { nombre: "Programación lineal", nota: "Gráfico y simplex", href: "/resolver/simplex" },
 ];
 
 const base =
