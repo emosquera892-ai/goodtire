@@ -58,7 +58,7 @@ function Matriz({
                   return (
                     <td key={j} className={`p-2.5 text-right tabular-nums ${u !== undefined ? "bg-apple-blue/25 font-semibold text-porcelain" : "text-porcelain"}`}>
                       {usd(v)}
-                      {u !== undefined && <span className="block text-[11px] font-medium text-electric-link">{num(String(u))} mil</span>}
+                      <span className={`block text-[11px] font-medium ${u !== undefined ? "text-electric-link" : "text-slate"}`}>{num(String(u ?? 0))} mil</span>
                     </td>
                   );
                 })}
@@ -216,7 +216,7 @@ export function EnunciadoGoodTire() {
 
         <p className="mb-2 mt-6 text-[14px] font-medium text-porcelain">2.4 Costo de envío planta → almacén (dólares por llanta)</p>
         <Matriz filasNombres={e.plantas.map((p) => p.nombre)} columnasNombres={e.almacenes.map((a) => a.nombre)} valores={e.cpa} unidades={(_, a) => PLAN_PA[a]} />
-        <Leyenda>Celda resaltada: ruta que usa el plan ganador. El número azul son las llantas (en miles) que se envían por esa ruta. Harrisburg no recibe nada: queda cerrado.</Leyenda>
+        <Leyenda>Celda resaltada: ruta que usa el plan ganador. Debajo de cada costo se indica cuántas llantas (en miles) se envían por esa ruta; en azul las del plan ganador y «0 mil» donde no se envía nada. Harrisburg no recibe nada: queda cerrado.</Leyenda>
         <P>
           Lo que cuesta llevar <B>una llanta</B> desde {e.plantas[0].nombre} hasta cada almacén. Lee la fila de la planta y busca la columna del almacén:
           por ejemplo, {e.plantas[0].nombre} → {e.almacenes[0].nombre} cuesta <B>{usd(e.cpa[0][0])}</B> por llanta.
@@ -224,7 +224,7 @@ export function EnunciadoGoodTire() {
 
         <p className="mb-2 mt-6 text-[14px] font-medium text-porcelain">2.5 Costo de envío almacén → cliente (dólares por llanta)</p>
         <Matriz filasNombres={e.almacenes.map((a) => a.nombre)} columnasNombres={e.clientes.map((c) => c.nombre)} valores={e.cac} unidades={(a, c) => PLAN_AC[`${a}|${c}`]} />
-        <Leyenda>Celdas resaltadas: las combinaciones almacén → cliente del plan ganador, con las llantas (en miles) de cada una. La fila atenuada es el almacén que se deja cerrado (Harrisburg). Cada columna suma exactamente la demanda del cliente: Dayton, por ejemplo, se abastece desde tres almacenes (1 + 12 + 5 = 18 mil).</Leyenda>
+        <Leyenda>Celdas resaltadas: las combinaciones almacén → cliente del plan ganador, con las llantas (en miles) de cada una; el resto de rutas queda en «0 mil». La fila atenuada es el almacén que se deja cerrado (Harrisburg). Cada columna suma exactamente la demanda del cliente: Dayton, por ejemplo, se abastece desde tres almacenes (1 + 12 + 5 = 18 mil).</Leyenda>
         <P>
           Lo que cuesta llevar <B>una llanta</B> desde un almacén (fila) hasta un cliente (columna). Por ejemplo, {e.almacenes[0].nombre} → {e.clientes[0].nombre}{" "}
           cuesta <B>{usd(e.cac[0][0])}</B>, mientras que {e.almacenes[0].nombre} → {e.clientes[e.clientes.length - 1].nombre} cuesta{" "}
