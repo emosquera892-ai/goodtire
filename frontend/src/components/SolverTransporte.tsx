@@ -31,6 +31,8 @@ import { PanelLateral } from "./PanelLateral";
 import { PANEL_TRANSPORTE } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { Boton, Campo } from "./ui";
+import { ImportarDatos } from "./ImportarDatos";
+import { importarTransporte, seccionesTransporte, SECCIONES_TRANSPORTE } from "@/lib/importar";
 
 type Resultado = { solucion: SolucionT; problema: ProblemaT };
 const mensajes = (e: unknown) => (e instanceof ErrorApi ? e.detalle : ["Ocurrió un error inesperado"]);
@@ -65,7 +67,7 @@ export function SolverTransporte() {
     setAviso("");
   }
 
-  function cargar(nuevo: EstadoT, nombre: string, p: "ejemplo" | "vacio") {
+  function cargar(nuevo: EstadoT, nombre: string, p: "ejemplo" | "vacio" | null) {
     setEstado(nuevo);
     setPlantilla(p);
     setResultado(null);
@@ -196,6 +198,13 @@ export function SolverTransporte() {
         <Boton variante="secundario" activo={plantilla === "vacio"} onClick={() => cargar(casoVacioT(), "Caso nuevo", "vacio")}>
           Empezar un caso vacío
         </Boton>
+        <ImportarDatos
+          seccionesConocidas={SECCIONES_TRANSPORTE}
+          importar={importarTransporte}
+          plantilla={() => seccionesTransporte(ejemploPowerco())}
+          archivoPlantilla="plantilla-transporte"
+          onImportar={(e, nombre) => cargar(e, nombre, null)}
+        />
         {caso && (
           <span className="text-[13px] text-ash">
             Editando: <strong className="text-porcelain">{caso.nombre}</strong>

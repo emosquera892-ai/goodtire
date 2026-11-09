@@ -31,6 +31,8 @@ import { PanelLateral } from "./PanelLateral";
 import { PANEL_TRANSBORDO } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { Boton, Campo } from "./ui";
+import { ImportarDatos } from "./ImportarDatos";
+import { importarTransbordo, seccionesTransbordo, SECCIONES_TRANSBORDO } from "@/lib/importar";
 
 type Resultado = { solucion: SolucionB; problema: ProblemaB };
 const mensajes = (e: unknown) => (e instanceof ErrorApi ? e.detalle : ["Ocurrió un error inesperado"]);
@@ -65,7 +67,7 @@ export function SolverTransbordo() {
     setAviso("");
   }
 
-  function cargar(nuevo: EstadoB, nombre: string, p: "ejemplo" | "vacio") {
+  function cargar(nuevo: EstadoB, nombre: string, p: "ejemplo" | "vacio" | null) {
     setEstado(nuevo);
     setPlantilla(p);
     setResultado(null);
@@ -195,6 +197,13 @@ export function SolverTransbordo() {
         <Boton variante="secundario" activo={plantilla === "vacio"} onClick={() => cargar(casoVacioB(), "Caso nuevo", "vacio")}>
           Empezar un caso vacío
         </Boton>
+        <ImportarDatos
+          seccionesConocidas={SECCIONES_TRANSBORDO}
+          importar={importarTransbordo}
+          plantilla={() => seccionesTransbordo(ejemploRed())}
+          archivoPlantilla="plantilla-transbordo"
+          onImportar={(e, nombre) => cargar(e, nombre, null)}
+        />
         {caso && (
           <span className="text-[13px] text-ash">
             Editando: <strong className="text-porcelain">{caso.nombre}</strong>

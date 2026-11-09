@@ -33,6 +33,8 @@ import { PanelLateral } from "./PanelLateral";
 import { PANEL_UBICACION } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { Boton, Campo } from "./ui";
+import { ImportarDatos } from "./ImportarDatos";
+import { importarUbicacion, seccionesUbicacion, SECCIONES_UBICACION } from "@/lib/importar";
 
 type Resultado = { solucion: Solucion; problema: Problema };
 
@@ -65,7 +67,7 @@ export function Solver() {
     setAviso("");
   }
 
-  function cargar(nuevo: Estado, nombre: string, p: "ejemplo" | "vacio") {
+  function cargar(nuevo: Estado, nombre: string, p: "ejemplo" | "vacio" | null) {
     setEstado(nuevo);
     setPlantilla(p);
     setResultado(null);
@@ -198,6 +200,13 @@ export function Solver() {
         <Boton variante="secundario" activo={plantilla === "vacio"} onClick={() => cargar(casoVacio(), "Caso nuevo", "vacio")}>
           Empezar un caso vacío
         </Boton>
+        <ImportarDatos
+          seccionesConocidas={SECCIONES_UBICACION}
+          importar={importarUbicacion}
+          plantilla={() => seccionesUbicacion(ejemploGoodTire())}
+          archivoPlantilla="plantilla-ubicacion"
+          onImportar={(e, nombre) => cargar(e, nombre, null)}
+        />
         {caso && <span className="text-[13px] text-ash">Editando: <strong className="text-porcelain">{caso.nombre}</strong></span>}
       </div>
 

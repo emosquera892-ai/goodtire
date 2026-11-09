@@ -30,6 +30,8 @@ import { PanelLateral } from "./PanelLateral";
 import { PANEL_ASIGNACION } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { Boton, Campo } from "./ui";
+import { ImportarDatos } from "./ImportarDatos";
+import { importarAsignacion, seccionesAsignacion, SECCIONES_ASIGNACION } from "@/lib/importar";
 
 type Resultado = { solucion: SolucionA; problema: ProblemaA };
 const mensajes = (e: unknown) => (e instanceof ErrorApi ? e.detalle : ["Ocurrió un error inesperado"]);
@@ -62,7 +64,7 @@ export function SolverAsignacion() {
     setAviso("");
   }
 
-  function cargar(nuevo: EstadoA, nombre: string, p: "ejemplo" | "vacio") {
+  function cargar(nuevo: EstadoA, nombre: string, p: "ejemplo" | "vacio" | null) {
     setEstado(nuevo);
     setPlantilla(p);
     setResultado(null);
@@ -193,6 +195,13 @@ export function SolverAsignacion() {
         <Boton variante="secundario" activo={plantilla === "vacio"} onClick={() => cargar(casoVacioA(), "Caso nuevo", "vacio")}>
           Empezar un caso vacío
         </Boton>
+        <ImportarDatos
+          seccionesConocidas={SECCIONES_ASIGNACION}
+          importar={importarAsignacion}
+          plantilla={() => seccionesAsignacion(ejemploMachineco())}
+          archivoPlantilla="plantilla-asignacion"
+          onImportar={(e, nombre) => cargar(e, nombre, null)}
+        />
         {caso && (
           <span className="text-[13px] text-ash">
             Editando: <strong className="text-porcelain">{caso.nombre}</strong>
