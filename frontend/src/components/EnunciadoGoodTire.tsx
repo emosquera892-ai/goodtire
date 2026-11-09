@@ -78,6 +78,33 @@ const Leyenda = ({ children }: { children: ReactNode }) => (
   </p>
 );
 
+const Cod = ({ children }: { children: ReactNode }) => <code className="whitespace-nowrap text-porcelain">{children}</code>;
+
+function TablaTexto({ columnas, filas }: { columnas: string[]; filas: ReactNode[][] }) {
+  return (
+    <div className="overflow-x-auto rounded-[20px] border border-steel">
+      <table className="w-full min-w-[560px] border-collapse text-[13px]">
+        <thead>
+          <tr>
+            {columnas.map((c) => (
+              <th key={c} scope="col" className="bg-carbon p-2.5 text-left font-medium text-ash">{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {filas.map((f, i) => (
+            <tr key={i} className="border-t border-steel align-top">
+              {f.map((v, j) => (
+                <td key={j} className={`p-2.5 ${j === 0 ? "text-porcelain" : "text-ash"}`}>{v}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function H({ n, children, id }: { n: number; children: ReactNode; id?: string }) {
   return (
     <h4 id={id} className="mt-8 scroll-mt-20 flex items-center gap-3 text-[19px] font-semibold tracking-[-0.2px] text-porcelain first:mt-0">
@@ -252,34 +279,59 @@ export function EnunciadoGoodTire() {
 
         <H n={3} id="en-3">Cómo se modela</H>
         <P>
-          Es un problema de <B>programación lineal entera mixta</B>. Mixta porque mezcla dos tipos de decisiones:
+          Se traduce el caso a ecuaciones en tres pasos: <B>(a)</B> ponerle una letra a cada dato, <B>(b)</B> decidir qué elige el modelo y <B>(c)</B> escribir el
+          objetivo y las reglas. Es un problema de <B>programación lineal entera mixta</B>: «entera» porque abrir un almacén es sí/no, y «lineal» porque los costos
+          crecen en proporción a las llantas.
         </P>
-        <ul className="mt-3 space-y-1.5">
-          <Li>
-            <B>¿Abrir o no el almacén w?</B> Decisión sí/no: variable binaria <code className="text-porcelain">y(w)</code> (1 = abierto, 0 = cerrado). No se
-            puede abrir «medio almacén».
-          </Li>
-          <Li>
-            <B>¿Cuántas llantas por cada ruta?</B> Variables continuas: <code className="text-porcelain">x(p,w)</code> de la planta al almacén y{" "}
-            <code className="text-porcelain">z(w,c)</code> del almacén al cliente.
-          </Li>
-        </ul>
-        <p className="mt-5 text-[13px] font-medium text-porcelain">Objetivo: minimizar el costo total</p>
-        <Formula>{`costo fijo de los almacenes abiertos  =  Σ fijo(w) · y(w)
-costo de transporte                    =  1000 · [ Σ c(p,w) · x(p,w)  +  Σ c(w,c) · z(w,c) ]
-costo total                            =  costo fijo + costo de transporte`}</Formula>
-        <p className="mt-5 text-[13px] font-medium text-porcelain">Restricciones</p>
-        <Formula>{`1. Demanda:        para cada cliente c,   Σ z(w,c) = demanda(c)
-2. Conservación:   para cada almacén w,   lo que entra = lo que sale
-                                          Σ x(p,w) = Σ z(w,c)
-3. Capacidad:      para cada almacén w,   Σ z(w,c) ≤ capacidad(w) · y(w)
-                   (si y(w)=0, no puede enviar nada)
-4. Enlace:         z(w,c) ≤ demanda(c) · y(w)
-5. Planta:         Σ x(p,w) ≤ capacidad(p)         (si la planta tiene límite)
-6. Opcionales:     mínimo / máximo de almacenes, forzar abrir o cerrar uno`}</Formula>
+
+        <p className="mb-2 mt-5 text-[14px] font-medium text-porcelain">(a) Los datos: cada letra sale de una tabla de arriba</p>
+        <TablaTexto
+          columnas={["Letra", "Qué es", "De dónde sale"]}
+          filas={[
+            [<Cod key="1">p, w, c</Cod>, "Una planta, un almacén y un cliente", "Los nombres de 2.1, 2.2 y 2.3"],
+            [<Cod key="2">fijo(w)</Cod>, "Costo mensual de tener abierto el almacén w", "Tabla 2.2, «Costo fijo mensual»"],
+            [<Cod key="3">capacidad(w)</Cod>, "Máximo de llantas que reparte el almacén w", "Tabla 2.2, «Capacidad»"],
+            [<Cod key="4">demanda(c)</Cod>, "Llantas que necesita el cliente c", "Tabla 2.3"],
+            [<Cod key="5">c(p,w)</Cod>, "Costo de enviar 1 llanta de la planta p al almacén w", "Matriz 2.4"],
+            [<Cod key="6">c(w,c)</Cod>, "Costo de enviar 1 llanta del almacén w al cliente c", "Matriz 2.5"],
+            [<Cod key="7">1000</Cod>, "Las cantidades van en miles: se multiplica por 1.000", "«Factor de unidades» en Opciones"],
+          ]}
+        />
+
+        <p className="mb-2 mt-5 text-[14px] font-medium text-porcelain">(b) Lo que decide el modelo (lo que no sabemos)</p>
+        <TablaTexto
+          columnas={["Variable", "Pregunta que responde", "Valores"]}
+          filas={[
+            [<Cod key="1">y(w)</Cod>, "¿Abro el almacén w?", "1 = abierto, 0 = cerrado (no existe «medio almacén»)"],
+            [<Cod key="2">x(p,w)</Cod>, "¿Cuántas llantas van de la planta p al almacén w?", "Cualquier cantidad ≥ 0 (en miles)"],
+            [<Cod key="3">z(w,c)</Cod>, "¿Cuántas llantas van del almacén w al cliente c?", "Cualquier cantidad ≥ 0 (en miles)"],
+          ]}
+        />
+
+        <p className="mb-2 mt-5 text-[14px] font-medium text-porcelain">(c) Objetivo: gastar lo menos posible</p>
+        <Formula>{`costo fijo        =  Σ fijo(w) · y(w)
+costo transporte  =  1000 · [ Σ c(p,w) · x(p,w)  +  Σ c(w,c) · z(w,c) ]
+costo total       =  costo fijo + costo transporte      ← esto se minimiza`}</Formula>
         <P>
-          La restricción 3 es la clave: une las dos decisiones. Si el almacén está cerrado, su capacidad efectiva es cero; si está abierto,
-          se paga su costo fijo y puede enviar hasta su capacidad.
+          «Σ» significa «sumar sobre todos». En el plan ganador, el costo fijo es <B>$40.000 + $30.000 + $25.000 + $20.000 = $115.000</B> (los cuatro almacenes
+          abiertos, con y = 1; Harrisburg tiene y = 0 y no suma). El transporte da $307.540: en total, <B>$422.540</B>.
+        </P>
+
+        <p className="mb-2 mt-5 text-[14px] font-medium text-porcelain">(d) Reglas que debe cumplir (restricciones)</p>
+        <TablaTexto
+          columnas={["Regla", "En palabras", "Ejemplo con el plan ganador"]}
+          filas={[
+            [<Cod key="1">Σ z(w,c) = demanda(c)</Cod>, "A cada cliente le llega exactamente lo que pide.", "Boston recibe 26 mil de Trenton = su demanda de 26."],
+            [<Cod key="2">Σ x(p,w) = Σ z(w,c)</Cod>, "Un almacén reparte todo lo que recibe: no guarda ni inventa llantas.", "Cleveland recibe 80 de Akron y envía 30 + 1 + 22 + 27 = 80."],
+            [<Cod key="3">Σ z(w,c) ≤ capacidad(w) · y(w)</Cod>, "No se reparte más que la capacidad; y si está cerrado (y = 0), nada.", "Cleveland: 80 ≤ 80 · 1. Harrisburg: 0 ≤ 60 · 0."],
+            [<Cod key="4">z(w,c) ≤ demanda(c) · y(w)</Cod>, "Solo envía a un cliente un almacén abierto, y nunca más de lo que el cliente pide.", "Harrisburg cerrado: no puede enviar a nadie."],
+            [<Cod key="5">Σ x(p,w) ≤ capacidad(p)</Cod>, "La planta no produce más de su límite (si lo tiene).", "Akron es ilimitada: no restringe."],
+            [<Cod key="6">mín ≤ Σ y(w) ≤ máx</Cod>, "Opcional: límite de almacenes abiertos, o forzar uno abierto/cerrado.", "En el caso base no se usa."],
+          ]}
+        />
+        <P>
+          La regla 3 es la que <B>une las dos decisiones</B>: si el almacén está cerrado, su capacidad efectiva es cero; si está abierto, se paga su costo fijo y
+          puede enviar hasta su capacidad. Por eso el modelo tiene que equilibrar costo fijo contra costo de transporte.
         </P>
 
         <H n={4} id="enunciado-como">Cómo se resuelve</H>
