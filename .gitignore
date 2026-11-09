@@ -3,3 +3,5 @@ __pycache__
 .env
 staticfiles/
 .env.prod
+respaldos/
+.env.unico

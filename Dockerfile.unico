@@ -1,0 +1,44 @@
+# Imagen única: nginx + frontend (Next.js) + backend (Django/gunicorn) + PostgreSQL, manejados por supervisor.
+# Construir desde la raíz del proyecto:  docker build -f Dockerfile.unico -t goodtire:unico .
+
+# ---------- 1) Construir el frontend ----------
+FROM node:24-slim AS frontend
+ENV NEXT_TELEMETRY_DISABLED=1
+WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ .
+# Dentro del contenedor el backend escucha en 127.0.0.1:8000
+ENV BACKEND_URL=http://127.0.0.1:8000
+RUN npm run build
+
+# ---------- 2) Imagen final ----------
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends nginx supervisor postgresql libstdc++6 \
+ && (pg_dropcluster --stop "$(ls /usr/lib/postgresql | sort -V | tail -1)" main || true) \
+ && rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/default
+
+# Node (solo el ejecutable) para servir el frontend
+COPY --from=frontend /usr/local/bin/node /usr/local/bin/node
+
+RUN useradd -m app
+WORKDIR /srv/backend
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/ .
+RUN DJANGO_SECRET_KEY=build python manage.py collectstatic --noinput
+
+COPY --from=frontend /app /srv/frontend
+COPY docker/unico/entrypoint.sh /srv/entrypoint.sh
+COPY docker/unico/arranque-backend.sh /srv/arranque-backend.sh
+RUN chmod +x /srv/entrypoint.sh /srv/arranque-backend.sh \
+ && chown -R app:app /srv/backend /srv/frontend \
+ && mkdir -p /var/lib/postgresql/data && chown postgres:postgres /var/lib/postgresql/data && chmod 700 /var/lib/postgresql/data
+
+VOLUME /var/lib/postgresql/data
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+  CMD python -c "import os,urllib.request as u; u.urlopen('http://127.0.0.1:%s/api/salud' % os.environ.get('PORT','80'), timeout=4)"
+ENTRYPOINT ["/srv/entrypoint.sh"]
