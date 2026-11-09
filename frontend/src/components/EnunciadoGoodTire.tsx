@@ -127,7 +127,7 @@ export function EnunciadoGoodTire() {
       </summary>
 
       <div className="border-t border-steel p-5 sm:p-8">
-        <H n={1}>El enunciado</H>
+        <H n={1} id="en-1">El enunciado</H>
         <P>
           <B>Good Tire, Inc.</B> es una fabricante de llantas con <B>una sola planta</B>, ubicada en <B>{e.plantas[0].nombre} (Ohio)</B>. Vende sus
           llantas en <B>{e.clientes.length} ciudades</B> (los <B>clientes</B>): {e.clientes.map((c) => c.nombre).join(", ")}.
@@ -155,19 +155,19 @@ export function EnunciadoGoodTire() {
           <Li>Las cantidades (capacidad y demanda) están en <B>miles de llantas</B> por mes y los costos de envío en <B>dólares por llanta</B>.</Li>
         </ul>
 
-        <H n={2}>Los datos del caso (de dónde sale cada número)</H>
+        <H n={2} id="en-2">Los datos del caso (de dónde sale cada número)</H>
         <P>
           Son los datos del caso de estudio clásico de <B>Good Tire, Inc.</B> (Winston, tablas 9.23 y 9.24). Aquí están todos, para que no falte ninguno:
           cada tabla es un dato de entrada que luego llenarás en las secciones del mismo nombre al pulsar «Cargar caso Good Tire».
         </P>
 
-        <p className="mb-2 mt-6 text-[14px] font-medium text-porcelain">2.1 Planta</p>
+        <p id="en-2-1" className="mb-2 mt-6 scroll-mt-20 text-[14px] font-medium text-porcelain">2.1 Planta</p>
         <P>
           Una sola: <B>{e.plantas[0].nombre}</B>, con producción <B>{e.plantas[0].capacidad.trim() === "" ? "ilimitada" : num(e.plantas[0].capacidad) + " mil"}</B> (puede fabricar todo lo que
           los almacenes le pidan).
         </P>
 
-        <p className="mb-2 mt-6 text-[14px] font-medium text-porcelain">2.2 Almacenes candidatos: capacidad y costo fijo</p>
+        <p id="en-2-2" className="mb-2 mt-6 scroll-mt-20 text-[14px] font-medium text-porcelain">2.2 Almacenes candidatos: capacidad y costo fijo</p>
         <div className="grid gap-5 lg:grid-cols-2">
           <div className="min-w-0">
             <Tabla
@@ -183,7 +183,7 @@ export function EnunciadoGoodTire() {
           </div>
         </div>
 
-        <p className="mb-2 mt-6 text-[14px] font-medium text-porcelain">2.3 Clientes: demanda mensual</p>
+        <p id="en-2-3" className="mb-2 mt-6 scroll-mt-20 text-[14px] font-medium text-porcelain">2.3 Clientes: demanda mensual</p>
         <div className="grid gap-5 lg:grid-cols-2">
           <div className="min-w-0">
             <div className="overflow-hidden rounded-[20px] border border-steel">
@@ -214,7 +214,7 @@ export function EnunciadoGoodTire() {
           </div>
         </div>
 
-        <p className="mb-2 mt-6 text-[14px] font-medium text-porcelain">2.4 Costo de envío planta → almacén (dólares por llanta)</p>
+        <p id="en-2-4" className="mb-2 mt-6 scroll-mt-20 text-[14px] font-medium text-porcelain">2.4 Costo de envío planta → almacén (dólares por llanta)</p>
         <Matriz filasNombres={e.plantas.map((p) => p.nombre)} columnasNombres={e.almacenes.map((a) => a.nombre)} valores={e.cpa} unidades={(_, a) => PLAN_PA[a]} />
         <Leyenda>Celda resaltada: ruta que usa el plan ganador. Debajo de cada costo se indica cuántas llantas (en miles) se envían por esa ruta; en azul las del plan ganador y «0 mil» donde no se envía nada. Harrisburg no recibe nada: queda cerrado.</Leyenda>
         <P>
@@ -222,7 +222,7 @@ export function EnunciadoGoodTire() {
           por ejemplo, {e.plantas[0].nombre} → {e.almacenes[0].nombre} cuesta <B>{usd(e.cpa[0][0])}</B> por llanta.
         </P>
 
-        <p className="mb-2 mt-6 text-[14px] font-medium text-porcelain">2.5 Costo de envío almacén → cliente (dólares por llanta)</p>
+        <p id="en-2-5" className="mb-2 mt-6 scroll-mt-20 text-[14px] font-medium text-porcelain">2.5 Costo de envío almacén → cliente (dólares por llanta)</p>
         <Matriz filasNombres={e.almacenes.map((a) => a.nombre)} columnasNombres={e.clientes.map((c) => c.nombre)} valores={e.cac} unidades={(a, c) => PLAN_AC[`${a}|${c}`]} />
         <Leyenda>Celdas resaltadas: las combinaciones almacén → cliente del plan ganador, con las llantas (en miles) de cada una; el resto de rutas queda en «0 mil». La fila atenuada es el almacén que se deja cerrado (Harrisburg). Cada columna suma exactamente la demanda del cliente: Dayton, por ejemplo, se abastece desde tres almacenes (1 + 12 + 5 = 18 mil).</Leyenda>
         <P>
@@ -231,7 +231,7 @@ export function EnunciadoGoodTire() {
           <B>{usd(e.cac[0][e.clientes.length - 1])}</B>: a mayor distancia, mayor costo.
         </P>
 
-        <p className="mb-2 mt-6 text-[14px] font-medium text-porcelain">2.6 Cómo leer los costos: ejemplo completo</p>
+        <p id="en-2-6" className="mb-2 mt-6 scroll-mt-20 text-[14px] font-medium text-porcelain">2.6 Cómo leer los costos: ejemplo completo</p>
         {ejemplo && (
           <>
             <P>
@@ -250,7 +250,7 @@ export function EnunciadoGoodTire() {
           La app busca el punto donde la suma de ambos es la menor posible.
         </P>
 
-        <H n={3}>Cómo se modela</H>
+        <H n={3} id="en-3">Cómo se modela</H>
         <P>
           Es un problema de <B>programación lineal entera mixta</B>. Mixta porque mezcla dos tipos de decisiones:
         </P>
@@ -299,7 +299,7 @@ costo total                            =  costo fijo + costo de transporte`}</Fo
           </Li>
         </ul>
 
-        <H n={5}>El resultado del caso Good Tire</H>
+        <H n={5} id="en-5">El resultado del caso Good Tire</H>
         <P>
           La solución óptima es abrir <B>Cleveland, Chicago, Trenton y Louisville</B> y <B>dejar cerrado Harrisburg</B>. El costo total es de{" "}
           <B>$422.540</B>: $115.000 de costos fijos más $307.540 de transporte.
@@ -309,7 +309,7 @@ costo total                            =  costo fijo + costo de transporte`}</Fo
           fijo es de $20.000 y el total subiría a $427.850. <B>El ahorro en transporte no compensa el costo de abrirlo.</B>
         </P>
 
-        <H n={6}>Cómo probarlo aquí</H>
+        <H n={6} id="en-6">Cómo probarlo aquí</H>
         <ul className="mt-3 space-y-1.5">
           <Li>Pulsa «Cargar caso Good Tire» y luego «Resolver»: verás los almacenes abiertos, las rutas y la comparación.</Li>
           <Li>Cambia un costo fijo, una capacidad o una demanda y vuelve a resolver para ver cómo cambia la decisión.</Li>

@@ -9,6 +9,8 @@ export type EntradaPanel = {
   /** solo tiene sentido después de pulsar «Resolver» */
   resultado?: boolean;
   hijos?: EntradaPanel[];
+  /** grupo desplegado por defecto (mientras el usuario no lo pliegue) */
+  abierto?: boolean;
 };
 
 const buscar = (ids?: string[]) => {
@@ -97,7 +99,7 @@ export function PanelLateral({ entradas, tieneResultado }: { entradas: EntradaPa
     const k = clave(padre, e);
     const apagado = !!e.resultado && !tieneResultado;
     if (e.hijos) {
-      const abierto = manual[k] ?? (grupoActivo === k || activo.startsWith(k + "/"));
+      const abierto = manual[k] ?? (!!e.abierto || grupoActivo === k || activo.startsWith(k + "/"));
       const tocado = activo === k || activo.startsWith(k + "/");
       return (
         <li key={k}>

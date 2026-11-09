@@ -20,7 +20,26 @@ export const PANEL_UBICACION: EntradaPanel[] = [
   {
     etiqueta: "Enunciado del problema",
     ids: ["enunciado"],
-    hijos: [{ etiqueta: "Cómo se resuelve", ids: ["enunciado-como"] }],
+    hijos: [
+      { etiqueta: "1. El enunciado", ids: ["en-1"] },
+      {
+        etiqueta: "2. Los datos del caso",
+        ids: ["en-2"],
+        abierto: true,
+        hijos: [
+          { etiqueta: "2.1 Planta", ids: ["en-2-1"] },
+          { etiqueta: "2.2 Almacenes candidatos", ids: ["en-2-2"] },
+          { etiqueta: "2.3 Clientes y demanda", ids: ["en-2-3"] },
+          { etiqueta: "2.4 Costo planta → almacén", ids: ["en-2-4"] },
+          { etiqueta: "2.5 Costo almacén → cliente", ids: ["en-2-5"] },
+          { etiqueta: "2.6 Cómo leer los costos", ids: ["en-2-6"] },
+        ],
+      },
+      { etiqueta: "3. Cómo se modela", ids: ["en-3"] },
+      { etiqueta: "4. Cómo se resuelve", ids: ["enunciado-como"] },
+      { etiqueta: "5. El resultado", ids: ["en-5"] },
+      { etiqueta: "6. Cómo probarlo aquí", ids: ["en-6"] },
+    ],
   },
   {
     etiqueta: "Datos del problema",
