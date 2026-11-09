@@ -11,6 +11,8 @@ class Caso(models.Model):
     datos = models.JSONField()
     resultado = models.JSONField(null=True, blank=True)
     costo_total = models.DecimalField(max_digits=30, decimal_places=2, null=True, blank=True)
+    # Código secreto del enlace público de solo lectura (None = no compartido)
+    token_publico = models.CharField(max_length=64, unique=True, null=True, blank=True, editable=False)
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 

@@ -1,3 +1,5 @@
+import secrets
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -81,8 +83,8 @@ class CasoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Caso
-        fields = ("id", "tipo", "nombre", "datos", "resultado", "costo_total", "creado", "actualizado")
-        read_only_fields = ("resultado", "costo_total", "creado", "actualizado")
+        fields = ("id", "tipo", "nombre", "datos", "resultado", "costo_total", "token_publico", "creado", "actualizado")
+        read_only_fields = ("resultado", "costo_total", "token_publico", "creado", "actualizado")
 
     def validate_nombre(self, valor):
         valor = valor.strip()
@@ -118,7 +120,7 @@ class CasoResumenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Caso
-        fields = ("id", "tipo", "nombre", "costo_total", "resumen", "almacenes_abiertos", "creado", "actualizado")
+        fields = ("id", "tipo", "nombre", "costo_total", "resumen", "almacenes_abiertos", "token_publico", "creado", "actualizado")
 
     def get_almacenes_abiertos(self, obj):
         return (obj.resultado or {}).get("almacenes_abiertos", [])
@@ -162,6 +164,20 @@ class CasoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         self._verificar_limite()
         serializer.save(usuario=self.request.user)
+
+    @action(detail=True, methods=["post", "delete"])
+    def compartir(self, request, pk=None):
+        """POST: activa (o devuelve) el enlace público de solo lectura. DELETE: lo desactiva."""
+        caso = self.get_object()
+        if request.method == "DELETE":
+            if caso.token_publico:
+                caso.token_publico = None
+                caso.save(update_fields=["token_publico"])
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        if not caso.token_publico:
+            caso.token_publico = secrets.token_urlsafe(16)
+            caso.save(update_fields=["token_publico"])
+        return Response({"token": caso.token_publico})
 
     @action(detail=True, methods=["post"])
     def duplicar(self, request, pk=None):

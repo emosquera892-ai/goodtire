@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from . import views
 from .casos import CasoViewSet, LoginView, RegistroView
+from .compartido import CompartidoView, CopiarCompartidoView
 from .cuentas import (
     CambiarClaveView,
     CambiarCorreoView,
@@ -29,6 +30,8 @@ urlpatterns = [
     path("problemas/ubicacion/pasos", views.PasosUbicacionView.as_view()),
     path("problemas/asignacion/pasos", views.PasosAsignacionView.as_view()),
     path("problemas/transbordo/pasos", views.PasosTransbordoView.as_view()),
+    path("compartido/<str:token>", CompartidoView.as_view()),
+    path("compartido/<str:token>/copiar", CopiarCompartidoView.as_view()),
     path("auth/registro", RegistroView.as_view()),
     path("auth/recuperar", RecuperarView.as_view()),
     path("auth/restablecer", RestablecerView.as_view()),

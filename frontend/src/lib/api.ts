@@ -65,6 +65,7 @@ export type CasoResumen = {
   nombre: string;
   costo_total: number | null;
   almacenes_abiertos: string[];
+  token_publico: string | null;
   creado: string;
   actualizado: string;
 };
@@ -76,6 +77,7 @@ export type Caso = {
   datos: Problema;
   resultado: Solucion | null;
   costo_total: number | null;
+  token_publico?: string | null;
   creado: string;
   actualizado: string;
 };
@@ -237,6 +239,24 @@ export const actualizarCaso = (id: number, cambios: { nombre?: string; datos?: P
   pedir<Caso>(`/casos/${id}`, { method: "PATCH", body: JSON.stringify(cambios) }, true);
 export const borrarCaso = (id: number) => pedir<void>(`/casos/${id}`, { method: "DELETE" }, true);
 export const duplicarCaso = (id: number) => pedir<Caso>(`/casos/${id}/duplicar`, { method: "POST" }, true);
+
+/* ---------- Compartir un caso por enlace (solo lectura) ---------- */
+
+export type CasoCompartido = {
+  tipo: string;
+  nombre: string;
+  datos: unknown;
+  resultado: unknown;
+  costo_total: number | null;
+  actualizado: string;
+};
+
+export const compartirCaso = (id: number) => pedir<{ token: string }>(`/casos/${id}/compartir`, { method: "POST" }, true);
+export const dejarDeCompartir = (id: number) => pedir<void>(`/casos/${id}/compartir`, { method: "DELETE" }, true);
+export const verCompartido = (token: string) => pedir<CasoCompartido>(`/compartido/${encodeURIComponent(token)}`);
+export const copiarCompartido = (token: string) =>
+  pedir<Caso>(`/compartido/${encodeURIComponent(token)}/copiar`, { method: "POST" }, true);
+export const enlaceCompartido = (token: string) => `${window.location.origin}/compartido?c=${encodeURIComponent(token)}`;
 
 export const dinero = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
 export const numero = (n: number) => n.toLocaleString("es-CO", { maximumFractionDigits: 2 });

@@ -109,6 +109,7 @@ REST_FRAMEWORK = {
         "recuperar": "5/hour",
         "restablecer": "20/hour",
         "cuenta": "30/hour",
+        "compartido": "60/min",
     },
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
 }

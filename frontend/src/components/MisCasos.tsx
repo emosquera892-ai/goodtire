@@ -5,7 +5,10 @@ import {
   ErrorApi,
   actualizarCaso,
   borrarCaso,
+  compartirCaso,
+  dejarDeCompartir,
   dinero,
+  enlaceCompartido,
   duplicarCaso,
   listarCasos,
   obtenerCaso,
@@ -26,6 +29,7 @@ export function MisCasos({ activoId, onAbrir }: { activoId?: number; onAbrir: (c
   const [confirmar, setConfirmar] = useState<number | null>(null);
   const [renombrando, setRenombrando] = useState<{ id: number; nombre: string } | null>(null);
   const [ocupado, setOcupado] = useState<number | null>(null);
+  const [copiado, setCopiado] = useState<number | null>(null);
 
   useEffect(() => {
     let vivo = true;
@@ -65,6 +69,16 @@ export function MisCasos({ activoId, onAbrir }: { activoId?: number; onAbrir: (c
       fallo(e);
     } finally {
       setCargando(false);
+    }
+  }
+
+  async function copiarEnlace(id: number, token: string) {
+    try {
+      await navigator.clipboard.writeText(enlaceCompartido(token));
+      setCopiado(id);
+      setTimeout(() => setCopiado((v) => (v === id ? null : v)), 2500);
+    } catch {
+      /* sin permiso del portapapeles: el enlace queda visible para copiarlo a mano */
     }
   }
 
@@ -149,6 +163,34 @@ export function MisCasos({ activoId, onAbrir }: { activoId?: number; onAbrir: (c
                 <Boton variante="secundario" onClick={() => setRenombrando({ id: c.id, nombre: c.nombre })}>
                   Renombrar
                 </Boton>
+                {c.token_publico ? (
+                  <Boton
+                    variante="secundario"
+                    disabled={ocupado === c.id}
+                    onClick={() =>
+                      void ejecutar(c.id, async () => {
+                        await dejarDeCompartir(c.id);
+                        setLista((l) => l.map((x) => (x.id === c.id ? { ...x, token_publico: null } : x)));
+                      })
+                    }
+                  >
+                    Dejar de compartir
+                  </Boton>
+                ) : (
+                  <Boton
+                    variante="secundario"
+                    disabled={ocupado === c.id}
+                    onClick={() =>
+                      void ejecutar(c.id, async () => {
+                        const { token } = await compartirCaso(c.id);
+                        setLista((l) => l.map((x) => (x.id === c.id ? { ...x, token_publico: token } : x)));
+                        await copiarEnlace(c.id, token);
+                      })
+                    }
+                  >
+                    Compartir
+                  </Boton>
+                )}
                 {confirmar === c.id ? (
                   <>
                     <Boton
@@ -172,6 +214,21 @@ export function MisCasos({ activoId, onAbrir }: { activoId?: number; onAbrir: (c
                 )}
               </div>
             </div>
+            {c.token_publico && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-steel pt-3">
+                <span className="text-[13px] text-ash">Cualquiera con este enlace puede verlo (solo lectura):</span>
+                <input
+                  readOnly
+                  aria-label={`Enlace para compartir ${c.nombre}`}
+                  value={enlaceCompartido(c.token_publico)}
+                  onFocus={(ev) => ev.currentTarget.select()}
+                  className="min-w-0 flex-1 basis-60 rounded-full border border-slate bg-transparent px-3.5 py-1.5 text-[13px] text-porcelain outline-none focus-visible:outline-2 focus-visible:outline-apple-blue"
+                />
+                <Boton variante="secundario" onClick={() => void copiarEnlace(c.id, c.token_publico!)}>
+                  {copiado === c.id ? "¡Copiado!" : "Copiar enlace"}
+                </Boton>
+              </div>
+            )}
           </li>
         ))}
       </ul>
