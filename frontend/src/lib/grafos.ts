@@ -1,5 +1,6 @@
 /* Problemas de redes (grafos): ruta más corta, flujo máximo y árbol de expansión mínima.
-   Todo se calcula en el navegador y cada algoritmo deja un paso a paso. */
+   El paso a paso se calcula en el navegador; el servidor guarda el caso y verifica el resultado. */
+import type { Hoja } from "./exportar";
 
 export type Algoritmo = "ruta" | "flujo" | "arbol";
 
@@ -496,4 +497,70 @@ function kruskal(g: G): ResultadoG {
     mensaje: pasos[pasos.length - 1].texto,
     pasos,
   };
+}
+
+/* ---------- Guardar casos ---------- */
+
+export type DatosG = {
+  algoritmo: Algoritmo;
+  nodos: string[];
+  aristas: { de: string; a: string; valor: number }[];
+  origen: string | null;
+  destino: string | null;
+  dirigido: boolean;
+};
+export function aDatos(alg: Algoritmo, e: EstadoG): DatosG {
+  const g = normalizar(e, alg === "flujo" ? true : alg === "arbol" ? false : e.dirigido);
+  return {
+    algoritmo: alg,
+    nodos: g.nodos,
+    aristas: g.aristas,
+    origen: alg === "arbol" ? null : g.origen,
+    destino: alg === "arbol" ? null : g.destino,
+    dirigido: g.dirigido,
+  };
+}
+
+export function desdeDatos(d: DatosG): EstadoG {
+  return {
+    nodos: d.nodos,
+    aristas: d.aristas.map((x) => ({ de: x.de, a: x.a, valor: String(x.valor) })),
+    origen: d.origen ?? "",
+    destino: d.destino ?? "",
+    dirigido: d.dirigido,
+  };
+}
+
+/* ---------- Exportar ---------- */
+
+export function hojasGrafos(r: ResultadoG): Hoja[] {
+  const valor = INFO[r.algoritmo].valor;
+  return [
+    {
+      nombre: "Resumen",
+      bloques: [
+        {
+          columnas: ["Concepto", "Valor"],
+          filas: [
+            ["Problema", INFO[r.algoritmo].nombre],
+            ["Método", INFO[r.algoritmo].metodo],
+            ["Fecha", new Date().toLocaleDateString("es-CO", { dateStyle: "long" })],
+            ...r.metricas.map((m): [string, string] => [m.titulo, m.valor]),
+            ["Conclusión", r.mensaje],
+          ],
+        },
+      ],
+    },
+    {
+      nombre: "Datos",
+      bloques: [
+        { titulo: "Nodos", columnas: ["Nodo"], filas: r.nodos.map((n) => [n]) },
+        { titulo: "Conexiones", columnas: ["Desde", "Hasta", valor], filas: r.aristas.map((x) => [x.de, x.a, x.valor]) },
+      ],
+    },
+    {
+      nombre: "Paso a paso",
+      bloques: [{ columnas: ["#", "Paso", "Qué pasó"], filas: r.pasos.map((p, i) => [i + 1, p.titulo, p.texto]) }],
+    },
+  ];
 }

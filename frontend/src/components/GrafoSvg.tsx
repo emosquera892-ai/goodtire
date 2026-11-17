@@ -112,7 +112,7 @@ export function GrafoSvg({
         return (
           <g key={nombre}>
             <circle cx={p.x} cy={p.y} r={R} fill={relleno} stroke={s === "normal" ? "var(--color-slate)" : relleno} strokeWidth={1.5} />
-            <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize={nombre.length > 7 ? 9.5 : 11.5} fontWeight={600} fill={letra}>
+            <text className={s === "normal" ? undefined : "nodo-color"} x={p.x} y={p.y + 4} textAnchor="middle" fontSize={nombre.length > 7 ? 9.5 : 11.5} fontWeight={600} fill={letra}>
               {nombre.length > 10 ? `${nombre.slice(0, 9)}…` : nombre}
             </text>
           </g>

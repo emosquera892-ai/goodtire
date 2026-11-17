@@ -87,6 +87,34 @@ export function ejemploRed(): EstadoB {
   return desdeProblemaB({ ...EJEMPLO_B, costos: costos.map((f) => f.map((c) => (c === "" ? null : Number(c)))) });
 }
 
+/* Good Tire como red de transbordo: Akron → almacenes que abre la solución óptima → clientes.
+   Costos de la Tabla 9.23 y 9.24 ($ por llanta); cantidades en llantas (los datos del caso están en miles). */
+const GT_ALMACENES = [
+  { nombre: "Cleveland", capacidad: 80000, desdeAkron: 0.25, aClientes: [0.25, 1.25, 0.75, 1.63, 1.75, 1.0, 0.63, 2.13, 2.63, 3.25] },
+  { nombre: "Chicago", capacidad: 60000, desdeAkron: 0.75, aClientes: [1.75, 1.5, 1.38, 1.0, 0.25, 2.75, 2.38, 3.88, 2.38, 5.0] },
+  { nombre: "Trenton", capacidad: 60000, desdeAkron: 0.75, aClientes: [2.13, 2.75, 2.38, 3.5, 3.88, 1.88, 1.75, 0.5, 4.25, 1.25] },
+  { nombre: "Louisville", capacidad: 60000, desdeAkron: 0.75, aClientes: [1.75, 0.5, 1.0, 0.5, 1.5, 2.75, 2.0, 3.5, 0.88, 4.88] },
+];
+const GT_CLIENTES = [
+  ["Cleveland", 30000], ["Cincinnati", 20000], ["Dayton", 18000], ["Indianápolis", 16000], ["Chicago", 38000],
+  ["Búfalo", 22000], ["Pittsburgh", 27000], ["Filadelfia", 32000], ["Nashville", 19000], ["Boston", 26000],
+] as const;
+
+export function ejemploGoodTire(): EstadoB {
+  const nodos: EstadoB["nodos"] = [
+    { nombre: "Akron", tipo: "origen", cantidad: String(GT_CLIENTES.reduce((s, c) => s + c[1], 0)) },
+    ...GT_ALMACENES.map((a) => ({ nombre: `Almacén ${a.nombre}`, tipo: "intermedio" as const, cantidad: String(a.capacidad) })),
+    ...GT_CLIENTES.map((c) => ({ nombre: `Cliente ${c[0]}`, tipo: "destino" as const, cantidad: String(c[1]) })),
+  ];
+  const n = nodos.length;
+  const costos = Array.from({ length: n }, () => Array<string>(n).fill(""));
+  GT_ALMACENES.forEach((a, k) => {
+    costos[0][1 + k] = String(a.desdeAkron);
+    a.aClientes.forEach((c, j) => (costos[1 + k][1 + GT_ALMACENES.length + j] = String(c)));
+  });
+  return { nodos, costos };
+}
+
 export const casoVacioB = (): EstadoB => ({
   nodos: [
     { nombre: "Origen 1", tipo: "origen", cantidad: "" },

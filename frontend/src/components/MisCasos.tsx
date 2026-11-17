@@ -142,7 +142,7 @@ export function MisCasos({ activoId, onAbrir }: { activoId?: number; onAbrir: (c
                   <p className="truncate text-[17px] font-semibold tracking-[-0.374px] text-porcelain">{c.nombre}</p>
                 )}
                 <p className="mt-1 text-[13px] text-ash">
-                  {c.costo_total !== null ? (c.tipo === "asignacion" ? String(c.costo_total) : dinero(c.costo_total)) + " · " : ""}
+                  {c.costo_total !== null ? (c.tipo === "asignacion" || c.tipo === "grafos" ? String(c.costo_total) : dinero(c.costo_total)) + " · " : ""}
                   {TIPOS[c.tipo]?.nombre ?? c.tipo} · {c.resumen || "—"} · {fecha(c.actualizado)}
                 </p>
               </div>

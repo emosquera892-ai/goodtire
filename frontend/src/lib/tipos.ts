@@ -4,4 +4,5 @@ export const TIPOS: Record<string, { nombre: string; ruta: string }> = {
   transporte: { nombre: "Transporte", ruta: "/resolver/transporte" },
   transbordo: { nombre: "Transbordo", ruta: "/resolver/transbordo" },
   asignacion: { nombre: "Asignación", ruta: "/resolver/asignacion" },
+  grafos: { nombre: "Redes y grafos", ruta: "/resolver/grafos" },
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ErrorApi, copiarCompartido, verCompartido, type CasoCompartido, type Problema, type Solucion } from "@/lib/api";
 import type { ProblemaA, SolucionA } from "@/lib/asignacion";
 import { abrirLogin, useUsuario } from "@/lib/sesion";
@@ -11,10 +11,17 @@ import type { ProblemaT, SolucionT } from "@/lib/transporte";
 import { Resultados } from "./Resultados";
 import { ResultadosAsignacion } from "./ResultadosAsignacion";
 import { ResultadosTransbordo } from "./ResultadosTransbordo";
+import { ResultadosGrafos } from "./ResultadosGrafos";
+import { desdeDatos, resolver as resolverGrafos, type DatosG } from "@/lib/grafos";
 import { ResultadosTransporte } from "./ResultadosTransporte";
 import { Boton } from "./ui";
 
 const fecha = (iso: string) => new Date(iso).toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+
+function VistaGrafos({ datos }: { datos: DatosG }) {
+  const resultado = useMemo(() => resolverGrafos(datos.algoritmo, desdeDatos(datos)), [datos]);
+  return <ResultadosGrafos resultado={resultado} />;
+}
 
 function Vista({ c }: { c: CasoCompartido }) {
   if (!c.resultado) return <p className="text-[14px] text-ash">Este caso no tiene un resultado guardado.</p>;
@@ -27,6 +34,8 @@ function Vista({ c }: { c: CasoCompartido }) {
       return <ResultadosTransbordo solucion={c.resultado as SolucionB} problema={c.datos as ProblemaB} />;
     case "asignacion":
       return <ResultadosAsignacion solucion={c.resultado as SolucionA} problema={c.datos as ProblemaA} />;
+    case "grafos":
+      return <VistaGrafos datos={c.datos as DatosG} />;
     default:
       return <p className="text-[14px] text-ash">Este tipo de caso no se puede mostrar aquí.</p>;
   }

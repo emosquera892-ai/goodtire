@@ -1,8 +1,15 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ErrorApi } from "@/lib/api";
+import { abrirLogin, useUsuario } from "@/lib/sesion";
+import { actualizarCasoG, crearCasoG, obtenerCasoG, type CasoG } from "@/lib/grafosApi";
 import {
   INFO,
+  aDatos,
+  desdeDatos,
   LIMITES_G,
   ejemplo,
   hayErrores,
@@ -18,9 +25,10 @@ import { PANEL_GRAFOS } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
 import { GrafoSvg } from "./GrafoSvg";
 import { PanelLateral } from "./PanelLateral";
-import { Metrica } from "./Resultados";
+import { ResultadosGrafos } from "./ResultadosGrafos";
 import { Boton, BotonQuitar, Campo, Seccion, claseCampo } from "./ui";
 
+const mensajes = (e: unknown) => (e instanceof ErrorApi ? e.detalle : ["Ocurrió un error inesperado"]);
 const ALGS: Algoritmo[] = ["ruta", "flujo", "arbol"];
 const iniciales = (): Record<Algoritmo, EstadoG> => ({ ruta: ejemplo("ruta"), flujo: ejemplo("flujo"), arbol: ejemplo("arbol") });
 
@@ -59,14 +67,22 @@ function Selector({
 }
 
 export function SolverGrafos() {
+  const usuario = useUsuario();
+  const router = useRouter();
+  const casoParam = useSearchParams().get("caso");
+  const cargadoRef = useRef<string | null>(null);
   const refResultado = useRef<HTMLDivElement>(null);
   const [alg, setAlg] = useState<Algoritmo>("ruta");
   const [estados, setEstados] = useState<Record<Algoritmo, EstadoG>>(iniciales);
   const [resultado, setResultado] = useState<ResultadoG | null>(null);
   const [desactualizado, setDesactualizado] = useState(false);
   const [intentado, setIntentado] = useState(false);
-  const [paso, setPaso] = useState(0);
+  const [version, setVersion] = useState(0);
   const [aviso, setAviso] = useState("");
+  const [casoActual, setCasoActual] = useState<{ id: number; nombre: string } | null>(null);
+  const [nombreGuardar, setNombreGuardar] = useState("Mi red");
+  const [guardando, setGuardando] = useState(false);
+  const [errorServidor, setErrorServidor] = useState<string[]>([]);
 
   const estado = estados[alg];
   const info = INFO[alg];
@@ -75,6 +91,7 @@ export function SolverGrafos() {
   const err = (k: string) => (intentado ? errores.celdas[k] : undefined);
   const nombres = estado.nodos.map((n) => n.trim()).filter(Boolean);
   const usaDestino = alg !== "arbol";
+  const caso = usuario ? casoActual : null;
 
   function poner(nuevo: EstadoG) {
     setEstados((p) => ({ ...p, [alg]: nuevo }));
@@ -84,18 +101,22 @@ export function SolverGrafos() {
   function cargar(nuevo: EstadoG) {
     setEstados((p) => ({ ...p, [alg]: nuevo }));
     setResultado(null);
+    setCasoActual(null);
     setIntentado(false);
     setDesactualizado(false);
-    setPaso(0);
     setAviso("");
+    setErrorServidor([]);
+    if (casoParam) router.replace("/resolver/grafos");
   }
   function cambiarAlg(a: Algoritmo) {
     setAlg(a);
     setResultado(null);
+    setCasoActual(null);
     setIntentado(false);
     setDesactualizado(false);
-    setPaso(0);
     setAviso("");
+    setErrorServidor([]);
+    if (casoParam) router.replace("/resolver/grafos");
   }
 
   function renombrar(i: number, nuevo: string) {
@@ -128,13 +149,78 @@ export function SolverGrafos() {
       return;
     }
     setResultado(resolver(alg, estado));
-    setPaso(0);
+    setVersion((v) => v + 1);
     setDesactualizado(false);
     requestAnimationFrame(() => refResultado.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 
-  const pasoActual = resultado ? resultado.pasos[Math.min(paso, resultado.pasos.length - 1)] : null;
-  const final = resultado ? resultado.pasos[resultado.pasos.length - 1] : null;
+  async function guardar(comoNuevo: boolean) {
+    if (!usuario) {
+      abrirLogin();
+      return;
+    }
+    setIntentado(true);
+    setAviso("");
+    setErrorServidor([]);
+    if (hayErrores(errores)) {
+      setAviso("Corrige los campos marcados antes de guardar.");
+      enfocarPrimerError();
+      return;
+    }
+    const nombre = nombreGuardar.trim();
+    if (!nombre) {
+      setAviso("Escribe un nombre para el caso.");
+      return;
+    }
+    setGuardando(true);
+    try {
+      const datos = aDatos(alg, estado);
+      const guardado = caso && !comoNuevo ? await actualizarCasoG(caso.id, { nombre, datos }) : await crearCasoG(nombre, datos);
+      setCasoActual({ id: guardado.id, nombre: guardado.nombre });
+      setResultado(resolver(alg, estado));
+      setVersion((v) => v + 1);
+      setDesactualizado(false);
+      setAviso("Caso guardado ✓");
+    } catch (e) {
+      setErrorServidor(mensajes(e));
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  const abrir = useCallback((c: CasoG) => {
+    const nuevo = desdeDatos(c.datos);
+    setAlg(c.datos.algoritmo);
+    setEstados((p) => ({ ...p, [c.datos.algoritmo]: nuevo }));
+    setResultado(resolver(c.datos.algoritmo, nuevo));
+    setVersion((v) => v + 1);
+    setCasoActual({ id: c.id, nombre: c.nombre });
+    setNombreGuardar(c.nombre);
+    setIntentado(false);
+    setDesactualizado(false);
+    setErrorServidor([]);
+    setAviso("");
+  }, []);
+
+  useEffect(() => {
+    if (!casoParam) {
+      cargadoRef.current = null;
+      return;
+    }
+    if (!usuario || cargadoRef.current === casoParam) return;
+    cargadoRef.current = casoParam;
+    const id = Number(casoParam);
+    if (!Number.isInteger(id)) return;
+    obtenerCasoG(id)
+      .then((c) => {
+        if (c.tipo !== "grafos") throw new ErrorApi(["Ese caso no es de redes y grafos."]);
+        abrir(c);
+      })
+      .catch((e) => {
+        cargadoRef.current = null;
+        setErrorServidor(mensajes(e));
+      });
+  }, [casoParam, usuario, abrir]);
 
   // vista previa con lo que ya es válido
   const previa = useMemo(() => {
@@ -157,6 +243,20 @@ export function SolverGrafos() {
         <p className="mt-3 max-w-2xl text-[17px] leading-[1.47] tracking-[-0.374px] text-ash">
           Dibuja una red de nodos y conexiones y resuélvela: el camino más barato, cuánto se puede enviar como máximo o cómo conectar todo con el menor costo. Cada método se muestra paso a paso sobre el grafo.
         </p>
+
+        {casoParam && !usuario && (
+          <p className="mt-6 rounded-[20px] border border-slate p-4 text-[14px] text-porcelain">
+            Inicia sesión para abrir el caso guardado.{" "}
+            <button type="button" onClick={abrirLogin} className="text-electric-link hover:underline">
+              Entrar
+            </button>
+          </p>
+        )}
+        {caso && (
+          <p className="mt-6 text-[14px] text-ash">
+            Editando: <strong className="text-porcelain">{caso.nombre}</strong>
+          </p>
+        )}
 
         <div id="tipo" className="mt-8 flex flex-wrap items-center gap-3">
           {ALGS.map((a) => (
@@ -268,117 +368,56 @@ export function SolverGrafos() {
           <Boton onClick={calcular}>Resolver</Boton>
           {intentado && nCampos > 0 && <ErroresCampos n={nCampos} />}
           {desactualizado && resultado && <span className="text-[14px] text-optical-yellow">Cambiaste los datos: vuelve a resolver.</span>}
-          {aviso && <span className="text-[14px] text-ash">{aviso}</span>}
+          {aviso && !usuario && <span className="text-[14px] text-ash">{aviso}</span>}
         </div>
 
-        {resultado && final && pasoActual && (
-          <div ref={refResultado} className="mt-10 scroll-mt-20">
-            <Seccion id="resultado" titulo={INFO[resultado.algoritmo].nombre} nota={`Método: ${INFO[resultado.algoritmo].metodo}.`}>
-              <div className={`grid gap-4 ${resultado.metricas.length > 2 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-                {resultado.metricas.map((m) => (
-                  <Metrica key={m.titulo} etiqueta={m.titulo}>
-                    {m.valor}
-                  </Metrica>
-                ))}
-              </div>
-              <p className="mt-5 max-w-3xl text-[15px] leading-[1.5] text-porcelain">{resultado.mensaje}</p>
-              <div className="mt-6 rounded-[20px] bg-obsidian p-3">
-                <GrafoSvg nodos={resultado.nodos} aristas={resultado.aristas} dirigido={resultado.dirigido} estilos={final.aristas} etiquetas={final.etiquetas} estilosNodo={final.nodos} />
-              </div>
-              <Leyenda alg={resultado.algoritmo} />
-            </Seccion>
+        {errorServidor.length > 0 && (
+          <ul className="mt-4 list-disc space-y-1 pl-5 text-[14px] text-[#ff453a]">
+            {errorServidor.map((m, i) => (
+              <li key={i}>{m}</li>
+            ))}
+          </ul>
+        )}
 
-            <Seccion id="paso-a-paso" titulo="Paso a paso" nota="Avanza de a un paso para ver qué decide el algoritmo y por qué." className="mt-6">
-              <div className="flex flex-wrap items-center gap-3">
-                <Boton variante="secundario" disabled={paso <= 0} onClick={() => setPaso(paso - 1)}>
-                  ← Anterior
-                </Boton>
-                <Boton variante="secundario" disabled={paso >= resultado.pasos.length - 1} onClick={() => setPaso(paso + 1)}>
-                  Siguiente →
-                </Boton>
-                <input
-                  type="range"
-                  aria-label="Paso"
-                  min={0}
-                  max={resultado.pasos.length - 1}
-                  value={Math.min(paso, resultado.pasos.length - 1)}
-                  onChange={(e) => setPaso(Number(e.target.value))}
-                  className="min-w-40 flex-1 accent-apple-blue"
-                />
-                <span className="text-[13px] text-ash">
-                  Paso {Math.min(paso, resultado.pasos.length - 1) + 1} de {resultado.pasos.length}
-                </span>
-              </div>
-              <h4 className="mt-5 text-[19px] font-semibold text-porcelain">{pasoActual.titulo}</h4>
-              <p className="mt-1 max-w-3xl text-[15px] leading-[1.5] text-ash">{pasoActual.texto}</p>
-              <div className="mt-4 rounded-[20px] bg-obsidian p-3">
-                <GrafoSvg nodos={resultado.nodos} aristas={resultado.aristas} dirigido={resultado.dirigido} estilos={pasoActual.aristas} etiquetas={pasoActual.etiquetas} estilosNodo={pasoActual.nodos} />
-              </div>
-              {pasoActual.tabla && pasoActual.tabla.filas.length > 0 && (
-                <div className="mt-5 overflow-x-auto">
-                  <table className="w-full min-w-[420px] text-left text-[13px]">
-                    <thead>
-                      <tr className="text-ash">
-                        {pasoActual.tabla.cab.map((c) => (
-                          <th key={c} className="px-2 py-1.5 font-normal">
-                            {c}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pasoActual.tabla.filas.map((f, i) => (
-                        <tr key={i} className="border-t border-white/10 text-porcelain">
-                          {f.map((c, j) => (
-                            <td key={j} className="px-2 py-1.5">
-                              {c}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </Seccion>
+        {resultado && (
+          <div ref={refResultado} className="mt-10 scroll-mt-20">
+            <ResultadosGrafos key={version} resultado={resultado} />
           </div>
         )}
+
+        <div id="guardar-caso" className="mt-6 scroll-mt-16 rounded-[28px] bg-carbon p-5 sm:p-8 no-imprimir">
+          <h3 className="text-[28px] font-semibold leading-none tracking-[0.196px] text-porcelain">Guardar caso</h3>
+          {usuario ? (
+            <>
+              <p className="mt-2 text-[14px] text-ash">Se guarda en tu cuenta y luego puedes abrirlo o compartirlo por enlace desde «Mis casos».</p>
+              <div className="mt-5 flex flex-wrap items-start gap-3">
+                <div className="w-full sm:w-80">
+                  <Campo aria-label="Nombre del caso" maxLength={120} value={nombreGuardar} onChange={(e) => setNombreGuardar(e.target.value)} />
+                </div>
+                <Boton disabled={guardando} onClick={() => void guardar(false)}>
+                  {guardando ? "Guardando…" : caso ? "Actualizar caso" : "Guardar caso"}
+                </Boton>
+                {caso && (
+                  <Boton variante="secundario" disabled={guardando} onClick={() => void guardar(true)}>
+                    Guardar como nuevo
+                  </Boton>
+                )}
+              </div>
+              <p className="mt-3 text-[14px] text-porcelain">
+                {aviso && <span className="mr-3">{aviso}</span>}
+                <Link href="/casos" className="text-electric-link hover:underline">
+                  Ver mis casos →
+                </Link>
+              </p>
+            </>
+          ) : (
+            <div className="mt-3 flex flex-wrap items-center gap-4">
+              <p className="text-[14px] text-ash">Inicia sesión para guardar tus casos y abrirlos desde cualquier dispositivo.</p>
+              <Boton onClick={abrirLogin}>Entrar o crear cuenta</Boton>
+            </div>
+          )}
+        </div>
       </div>
     </section>
-  );
-}
-
-function Punto({ color, texto }: { color: string; texto: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
-      {texto}
-    </span>
-  );
-}
-
-function Leyenda({ alg }: { alg: Algoritmo }) {
-  return (
-    <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-ash">
-      {alg === "ruta" && (
-        <>
-          <Punto color="var(--color-apple-blue)" texto="Camino más corto" />
-          <Punto color="#ff9f0a" texto="Tramo que se está revisando" />
-        </>
-      )}
-      {alg === "flujo" && (
-        <>
-          <Punto color="var(--color-apple-blue)" texto="Arco con flujo (flujo/capacidad)" />
-          <Punto color="#ff453a" texto="Cuello de botella (corte mínimo)" />
-          <Punto color="#30d158" texto="Lado de la fuente" />
-        </>
-      )}
-      {alg === "arbol" && (
-        <>
-          <Punto color="var(--color-apple-blue)" texto="Conexión aceptada" />
-          <Punto color="#ff453a" texto="Descartada (haría un ciclo)" />
-        </>
-      )}
-    </p>
   );
 }

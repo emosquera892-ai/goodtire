@@ -11,6 +11,7 @@ import {
   casoVacioB,
   crearCasoB,
   desdeProblemaB,
+  ejemploGoodTire,
   ejemploRed,
   hayErroresB,
   obtenerCasoB,
@@ -44,7 +45,7 @@ export function SolverTransbordo() {
   const cargadoRef = useRef<string | null>(null);
   const refResultado = useRef<HTMLDivElement>(null);
   const [estado, setEstado] = useState<EstadoB>(() => ejemploRed());
-  const [plantilla, setPlantilla] = useState<"ejemplo" | "vacio" | null>("ejemplo");
+  const [plantilla, setPlantilla] = useState<"ejemplo" | "goodtire" | "vacio" | null>("ejemplo");
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [casoActual, setCasoActual] = useState<{ id: number; nombre: string } | null>(null);
   const [nombreGuardar, setNombreGuardar] = useState("Caso transbordo");
@@ -67,7 +68,7 @@ export function SolverTransbordo() {
     setAviso("");
   }
 
-  function cargar(nuevo: EstadoB, nombre: string, p: "ejemplo" | "vacio" | null) {
+  function cargar(nuevo: EstadoB, nombre: string, p: "ejemplo" | "goodtire" | "vacio" | null) {
     setEstado(nuevo);
     setPlantilla(p);
     setResultado(null);
@@ -194,6 +195,9 @@ export function SolverTransbordo() {
         <Boton variante="secundario" activo={plantilla === "ejemplo"} onClick={() => cargar(ejemploRed(), "Caso transbordo", "ejemplo")}>
           Cargar ejemplo
         </Boton>
+        <Boton variante="secundario" activo={plantilla === "goodtire"} onClick={() => cargar(ejemploGoodTire(), "Good Tire como transbordo", "goodtire")}>
+          Caso Good Tire
+        </Boton>
         <Boton variante="secundario" activo={plantilla === "vacio"} onClick={() => cargar(casoVacioB(), "Caso nuevo", "vacio")}>
           Empezar un caso vacío
         </Boton>
@@ -210,6 +214,14 @@ export function SolverTransbordo() {
           </span>
         )}
       </div>
+
+      {plantilla === "goodtire" && (
+        <p className="mt-4 max-w-3xl rounded-[20px] border border-slate p-4 text-[14px] leading-[1.5] text-porcelain">
+          <strong>Good Tire como red de transbordo.</strong> La planta de Akron envía a los 4 almacenes que abre la solución óptima de «Ubicación» (Cleveland, Chicago, Trenton y Louisville) y de ahí
+          se reparte a los 10 clientes. Las cantidades están en llantas y los costos en $ por llanta (Tablas 9.23 y 9.24). Aquí ya no se decide qué almacenes abrir: eso lo hace «Ubicación» con los costos
+          fijos. El resultado debe ser <strong>$307.540</strong> de transporte; sumados los $115.000 de costos fijos dan los <strong>$422.540</strong> del caso.
+        </p>
+      )}
 
       <div className="mt-6">
         <EditorTransbordo estado={estado} onCambio={cambiar} errores={errores} intentado={intentado} />
