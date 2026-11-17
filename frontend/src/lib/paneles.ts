@@ -53,7 +53,7 @@ export const PANEL_UBICACION: EntradaPanel[] = [
       { etiqueta: "Opciones", ids: ["d-opciones"] },
     ],
   },
-  resolver([mapaPlan]),
+  resolver([mapaPlan, { etiqueta: "Sensibilidad", ids: ["sensibilidad"], resultado: true }]),
 ];
 
 export const PANEL_TRANSPORTE: EntradaPanel[] = [

@@ -201,3 +201,17 @@ class ResolverSimplexView(APIView):
             return Response(simplex.resolver(simplex.parsear(request.data)))
         except ErrorDatos as e:
             return Response({"detail": e.mensajes}, status=422)
+
+
+class SensibilidadView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "resolver"
+
+    def post(self, request):
+        from .sensibilidad import analizar_datos
+
+        try:
+            return Response(analizar_datos(request.data))
+        except ErrorDatos as e:
+            return Response({"detail": e.mensajes}, status=422)

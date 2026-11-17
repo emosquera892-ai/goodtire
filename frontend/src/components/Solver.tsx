@@ -29,6 +29,7 @@ import { Resultados } from "./Resultados";
 import { abrirLogin, useUsuario } from "@/lib/sesion";
 import { resumenUbicacion } from "@/lib/escenarios";
 import { Escenarios } from "./Escenarios";
+import { Sensibilidad } from "./Sensibilidad";
 import { PanelLateral } from "./PanelLateral";
 import { PANEL_UBICACION } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
@@ -257,6 +258,8 @@ export function Solver() {
           </div>
         )}
       </div>
+
+      {resultado && <Sensibilidad key={JSON.stringify(resultado.problema)} problema={resultado.problema} />}
 
       <Escenarios actual={resultado ? resumenUbicacion(resultado.solucion) : null} />
 
