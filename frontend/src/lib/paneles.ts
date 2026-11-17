@@ -102,3 +102,21 @@ export const PANEL_SIMPLEX: EntradaPanel[] = [
   { etiqueta: "Resultado", ids: ["resultado"], resultado: true },
   { etiqueta: "Cómo se resuelve", ids: ["como-se-resuelve"], resultado: true },
 ];
+
+export const PANEL_GRAFOS: EntradaPanel[] = [
+  { etiqueta: "Tipo de problema", ids: ["tipo"] },
+  {
+    etiqueta: "Datos de la red",
+    ids: ["nodos"],
+    hijos: [
+      { etiqueta: "Nodos", ids: ["nodos"] },
+      { etiqueta: "Conexiones", ids: ["conexiones"] },
+      { etiqueta: "Origen y destino", ids: ["extremos"] },
+      { etiqueta: "Vista previa", ids: ["vista-previa"] },
+    ],
+  },
+  { etiqueta: "Resolver", ids: ["accion"], hijos: [
+    { etiqueta: "Resultado", ids: ["resultado"], resultado: true },
+    { etiqueta: "Paso a paso", ids: ["paso-a-paso"], resultado: true },
+  ] },
+];

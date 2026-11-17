@@ -13,6 +13,7 @@ const PROBLEMAS = [
   { nombre: "Transbordo", nota: "Con intermediarios", href: "/resolver/transbordo" },
   { nombre: "Asignación", nota: "Agente → tarea", href: "/resolver/asignacion" },
   { nombre: "Programación lineal", nota: "Gráfico y simplex", href: "/resolver/simplex" },
+  { nombre: "Redes y grafos", nota: "Ruta, flujo y árbol", href: "/resolver/grafos" },
 ];
 
 const base =
