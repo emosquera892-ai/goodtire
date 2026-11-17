@@ -28,6 +28,7 @@ import { RedTransbordo } from "./RedTransbordo";
 import { ResultadosTransbordo } from "./ResultadosTransbordo";
 import { resumenTransbordo } from "@/lib/escenarios";
 import { Escenarios } from "./Escenarios";
+import { SensibilidadRedes } from "./SensibilidadRedes";
 import { PanelLateral } from "./PanelLateral";
 import { PANEL_TRANSBORDO } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
@@ -276,6 +277,8 @@ export function SolverTransbordo() {
           </div>
         )}
       </div>
+
+      {resultado && <SensibilidadRedes key={JSON.stringify(resultado.problema)} tipo="transbordo" datos={resultado.problema} dinero={true} />}
 
       <Escenarios actual={resultado ? resumenTransbordo(resultado.solucion) : null} />
 

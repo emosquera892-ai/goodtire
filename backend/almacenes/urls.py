@@ -25,6 +25,7 @@ urlpatterns = [
     path("problemas/simplex/ejemplo", views.ejemplo_simplex),
     path("problemas/simplex/resolver", views.ResolverSimplexView.as_view()),
     path("problemas/ubicacion/sensibilidad", views.SensibilidadView.as_view()),
+    path("problemas/<str:tipo>/sensibilidad", views.SensibilidadTipoView.as_view()),
     path("problemas/<str:tipo>/ejemplo", views.ejemplo_tipo),
     path("problemas/<str:tipo>/resolver", views.ResolverTipoView.as_view()),
     path("problemas/transporte/pasos", views.PasosTransporteView.as_view()),

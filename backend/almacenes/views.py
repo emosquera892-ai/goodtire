@@ -215,3 +215,21 @@ class SensibilidadView(APIView):
             return Response(analizar_datos(request.data))
         except ErrorDatos as e:
             return Response({"detail": e.mensajes}, status=422)
+
+
+class SensibilidadTipoView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "resolver"
+
+    def post(self, request, tipo):
+        from django.http import Http404
+
+        from .sensibilidad_tipos import TIPOS, analizar
+
+        if tipo not in TIPOS:
+            raise Http404
+        try:
+            return Response(analizar(tipo, request.data))
+        except ErrorDatos as e:
+            return Response({"detail": e.mensajes}, status=422)

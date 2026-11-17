@@ -26,6 +26,7 @@ import { RedTransporte } from "./RedTransporte";
 import { ResultadosAsignacion } from "./ResultadosAsignacion";
 import { resumenAsignacion } from "@/lib/escenarios";
 import { Escenarios } from "./Escenarios";
+import { SensibilidadRedes } from "./SensibilidadRedes";
 import { PanelLateral } from "./PanelLateral";
 import { PANEL_ASIGNACION } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
@@ -256,6 +257,8 @@ export function SolverAsignacion() {
           </div>
         )}
       </div>
+
+      {resultado && <SensibilidadRedes key={JSON.stringify(resultado.problema)} tipo="asignacion" datos={resultado.problema} dinero={false} />}
 
       <Escenarios actual={resultado ? resumenAsignacion(resultado.solucion) : null} />
 

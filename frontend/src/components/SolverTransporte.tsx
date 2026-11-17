@@ -27,6 +27,7 @@ import { RedTransporte } from "./RedTransporte";
 import { ResultadosTransporte } from "./ResultadosTransporte";
 import { resumenTransporte } from "@/lib/escenarios";
 import { Escenarios } from "./Escenarios";
+import { SensibilidadRedes } from "./SensibilidadRedes";
 import { PanelLateral } from "./PanelLateral";
 import { PANEL_TRANSPORTE } from "@/lib/paneles";
 import { ErroresCampos, enfocarPrimerError } from "./ErroresCampos";
@@ -265,6 +266,8 @@ export function SolverTransporte() {
           </div>
         )}
       </div>
+
+      {resultado && <SensibilidadRedes key={JSON.stringify(resultado.problema)} tipo="transporte" datos={resultado.problema} dinero={true} />}
 
       <Escenarios actual={resultado ? resumenTransporte(resultado.solucion) : null} />
 

@@ -67,7 +67,7 @@ export const PANEL_TRANSPORTE: EntradaPanel[] = [
       { etiqueta: "Costo de envío por unidad", ids: ["d-costos"] },
     ],
   },
-  resolver([mapaPlan]),
+  resolver([mapaPlan, { etiqueta: "Sensibilidad", ids: ["sensibilidad"], resultado: true }]),
 ];
 
 export const PANEL_TRANSBORDO: EntradaPanel[] = [
@@ -80,7 +80,7 @@ export const PANEL_TRANSBORDO: EntradaPanel[] = [
       { etiqueta: "Costo de envío por unidad", ids: ["d-costos"] },
     ],
   },
-  resolver([mapaPlan]),
+  resolver([mapaPlan, { etiqueta: "Sensibilidad", ids: ["sensibilidad"], resultado: true }]),
 ];
 
 export const PANEL_ASIGNACION: EntradaPanel[] = [
@@ -94,7 +94,7 @@ export const PANEL_ASIGNACION: EntradaPanel[] = [
       { etiqueta: "Objetivo", ids: ["d-objetivo"] },
     ],
   },
-  resolver([{ etiqueta: "Asignaciones", ids: ["plan"], resultado: true }]),
+  resolver([{ etiqueta: "Asignaciones", ids: ["plan"], resultado: true }, { etiqueta: "Sensibilidad", ids: ["sensibilidad"], resultado: true }]),
 ];
 
 export const PANEL_SIMPLEX: EntradaPanel[] = [
