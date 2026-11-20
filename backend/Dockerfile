@@ -8,4 +8,4 @@ RUN DJANGO_SECRET_KEY=build python manage.py collectstatic --noinput
 RUN useradd -m app && chown -R app /app
 USER app
 EXPOSE 8000
-CMD ["sh", "-c", "python manage.py migrate --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 300 --access-logfile -"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-3} --timeout 300 --access-logfile -"]
