@@ -1,7 +1,10 @@
-venv
-__pycache__
+venv/
+__pycache__/
+*.pyc
 .env
-staticfiles/
-.env.prod
-respaldos/
-.env.unico
+*.env
+.env.*
+node_modules/
+.next/
+*.log
+*.sqlite3
